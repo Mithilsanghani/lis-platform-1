@@ -1,0 +1,213 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   ENTERPRISE MASTER LAYOUT SYSTEM
+   All values are locked. Do NOT override with inline styles.
+   ============================================================ */
+
+/* ---- Layout Constants (used via Tailwind utility classes) ----
+   Sidebar expanded:   260px   → w-[260px] / ml-[260px]
+   Sidebar collapsed:   80px   → w-20      / ml-20
+   Navbar height:        70px   → h-[70px]
+   Navbar padding-x:     32px   → px-8
+   Search bar max:      600px   → max-w-[600px]
+   Page container:     1400px   → max-w-[1400px] mx-auto px-8 py-8
+   Modal z-index:       1000    → z-[1000]
+   Modal max-w (md):    520px   → max-w-[520px]
+   ------------------------------------------------------------ */
+
+/* Professional Form Styling - 8px Grid System */
+@layer components {
+  .form-input {
+    height: 44px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid #1f2937;
+    background: #111827;
+    color: white;
+    font-size: 14px;
+    width: 100%;
+  }
+  
+  .form-input:focus {
+    outline: none;
+    border-color: rgba(99, 102, 241, 0.5);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+  }
+  
+  .form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 500;
+    color: #94a3b8;
+    margin-bottom: 8px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+}
+
+/* ============================================================ */
+
+/* v5.0 Premium Design Variables - Dark Theme (Default) */
+:root {
+  /* Colors */
+  --bg-primary: #0A0A1B;
+  --bg-secondary: #0F0F23;
+  --bg-card: #1A1A2E;
+  --bg-surface: #18181b;
+  --text-primary: #ffffff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --border-color: #27272a;
+  --accent-purple: #8B5CF6;
+  --accent-indigo: #6366F1;
+  --accent-blue: #3B82F6;
+  
+  /* Glass Effect */
+  --glass-bg: rgba(26, 26, 46, 0.6);
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-blur: 20px;
+  
+  /* Shadows */
+  --shadow-purple: 0 20px 40px -12px rgba(139, 92, 246, 0.25);
+  --shadow-glow: 0 0 60px -12px rgba(139, 92, 246, 0.4);
+  
+  /* Typography */
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+/* Glass Card Utility */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+}
+
+/* Gradient Text */
+.gradient-text {
+  background: linear-gradient(135deg, #fff 0%, #c4b5fd 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glow Effects */
+.glow-purple {
+  box-shadow: var(--shadow-purple);
+}
+
+.glow-purple-lg {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Premium Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.5);
+}
+
+/* Selection */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: #fff;
+}
+
+/* Focus Ring */
+:focus-visible {
+  outline: 2px solid var(--accent-purple);
+  outline-offset: 2px;
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.blur-sm {
+  backdrop-filter: blur(4px);
+}

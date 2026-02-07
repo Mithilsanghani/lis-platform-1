@@ -1,0 +1,398 @@
+/**
+ * LIS Professor Hooks
+ * React hooks for professor data with mock implementation
+ */
+
+import { useState, useMemo, useCallback } from 'react';
+import {
+  mockCourses,
+  mockLectures,
+  mockFeedback,
+  mockStudents,
+  mockStudentMetrics,
+  mockTopicPerformance,
+  mockProfessorInsights,
+  mockProfessorDashboard,
+} from '../data/mockData';
+import {
+  analyzeLectureFeedback,
+  detectSilentStudents,
+  computeRevisionPlan,
+} from '../lib/intelligence';
+import type {
+  Course,
+  Lecture,
+  Feedback,
+  AIInsight,
+  StudentMetrics,
+  TopicPerformance,
+  SilentStudent,
+  RevisionPlan,
+  LectureFeedbackAnalysis,
+} from '../types/lis';
+
+// ============================================
+// DASHBOARD HOOK
+// ============================================
+
+export function useProfessorDashboard() {
+  const [isLoading] = useState(false);
+
+  return {
+    data: mockProfessorDashboard,
+    isLoading,
+    error: null,
+  };
+}
+
+// ============================================
+// COURSES HOOK
+// ============================================
+
+interface CoursesFilters {
+  semester?: string;
+  department?: string;
+  search?: string;
+  riskLevel?: 'low' | 'medium' | 'high' | 'all';
+}
+
+export function useProfessorCourses(filters?: CoursesFilters) {
+  const [isLoading] = useState(false);
+
+  const courses = useMemo(() => {
+    let filtered = [...mockCourses];
+
+    if (filters?.semester) {
+      filtered = filtered.filter(c => c.semester === filters.semester);
+    }
+    if (filters?.department) {
+      filtered = filtered.filter(c => c.department === filters.department);
+    }
+    if (filters?.search) {
+      const search = filters.search.toLowerCase();
+      filtered = filtered.filter(c =>
+        c.title.toLowerCase().includes(search) ||
+        c.code.toLowerCase().includes(search)
+      );
+    }
+    if (filters?.riskLevel && filters.riskLevel !== 'all') {
+      filtered = filtered.filter(c => {
+        if (filters.riskLevel === 'high') return (c.health_pct || 100) < 70;
+        if (filters.riskLevel === 'medium') return (c.health_pct || 100) >= 70 && (c.health_pct || 100) < 85;
+        return (c.health_pct || 100) >= 85;
+      });
+    }
+
+    return filtered;
+  }, [filters]);
+
+  return {
+    courses,
+    total: courses.length,
+    isLoading,
+    error: null,
+  };
+}
+
+export function useCourseDetail(courseId: string) {
+  const course = mockCourses.find(c => c.id === courseId) || null;
+  const lectures = mockLectures.filter(l => l.course_id === courseId);
+
+  return {
+    course,
+    lectures,
+    isLoading: false,
+    error: null,
+  };
+}
+
+// ============================================
+// LECTURES HOOK
+// ============================================
+
+interface LectureFilters {
+  courseId?: string;
+  fromDate?: string;
+  toDate?: string;
+  hasFeedback?: boolean;
+}
+
+export function useProfessorLectures(filters?: LectureFilters) {
+  const lectures = useMemo(() => {
+    let filtered = [...mockLectures];
+
+    if (filters?.courseId) {
+      filtered = filtered.filter(l => l.course_id === filters.courseId);
+    }
+    if (filters?.hasFeedback !== undefined) {
+      filtered = filtered.filter(l =>
+        filters.hasFeedback ? (l.feedback_count || 0) > 0 : (l.feedback_count || 0) === 0
+      );
+    }
+
+    // Add feedback summary to each lecture
+    return filtered.map(lecture => {
+      const lectureFeedback = mockFeedback.filter(f => f.lecture_id === lecture.id);
+      const analysis = analyzeLectureFeedback(lectureFeedback);
+      return {
+        ...lecture,
+        understanding_summary: analysis.summary,
+      };
+    });
+  }, [filters]);
+
+  return {
+    lectures,
+    total: lectures.length,
+    isLoading: false,
+    error: null,
+  };
+}
+
+export function useLectureDetail(lectureId: string) {
+  const lecture = mockLectures.find(l => l.id === lectureId) || null;
+  const feedback = mockFeedback.filter(f => f.lecture_id === lectureId);
+  const analysis = lecture ? analyzeLectureFeedback(feedback) : null;
+  const course = lecture ? mockCourses.find(c => c.id === lecture.course_id) : null;
+
+  return {
+    lecture: lecture ? { ...lecture, course } : null,
+    feedback,
+    analysis,
+    isLoading: false,
+    error: null,
+  };
+}
+
+// ============================================
+// FEEDBACK ANALYSIS HOOK
+// ============================================
+
+export function useLectureFeedbackAnalysis(lectureId: string): {
+  analysis: LectureFeedbackAnalysis | null;
+  feedback: Feedback[];
+  isLoading: boolean;
+} {
+  const feedback = mockFeedback.filter(f => f.lecture_id === lectureId);
+  const analysis = feedback.length > 0 ? analyzeLectureFeedback(feedback) : null;
+
+  return {
+    analysis,
+    feedback,
+    isLoading: false,
+  };
+}
+
+// ============================================
+// STUDENTS HOOK
+// ============================================
+
+interface StudentFilters {
+  courseId?: string;
+  search?: string;
+  isSilent?: boolean;
+  riskLevel?: 'low' | 'medium' | 'high' | 'all';
+}
+
+export function useProfessorStudents(filters?: StudentFilters) {
+  const students = useMemo(() => {
+    let metrics = [...mockStudentMetrics];
+
+    if (filters?.courseId) {
+      metrics = metrics.filter(m => m.course_id === filters.courseId);
+    }
+    if (filters?.isSilent !== undefined) {
+      metrics = metrics.filter(m => m.is_silent === filters.isSilent);
+    }
+    if (filters?.riskLevel && filters.riskLevel !== 'all') {
+      metrics = metrics.filter(m => m.risk_level === filters.riskLevel);
+    }
+
+    // Join with student data
+    return metrics.map(m => {
+      const student = mockStudents.find(s => s.id === m.student_id);
+      return {
+        ...m,
+        student,
+      };
+    });
+  }, [filters]);
+
+  return {
+    students,
+    total: students.length,
+    isLoading: false,
+    error: null,
+  };
+}
+
+// ============================================
+// SILENT STUDENTS HOOK
+// ============================================
+
+export function useSilentStudents(courseId?: string) {
+  const silentStudents = useMemo(() => {
+    // Build course feedback history
+    const relevantLectures = courseId
+      ? mockLectures.filter(l => l.course_id === courseId)
+      : mockLectures;
+
+    const studentHistory = mockStudents.map(student => {
+      const studentFeedback = mockFeedback.filter(f =>
+        f.student_id === student.id &&
+        relevantLectures.some(l => l.id === f.lecture_id)
+      );
+      return {
+        studentId: student.id,
+        studentName: student.full_name,
+        feedbackList: studentFeedback,
+        totalLectures: relevantLectures.length,
+      };
+    });
+
+    return detectSilentStudents(studentHistory);
+  }, [courseId]);
+
+  return {
+    silentStudents,
+    count: silentStudents.length,
+    isLoading: false,
+  };
+}
+
+// ============================================
+// TOPIC PERFORMANCE HOOK
+// ============================================
+
+export function useTopicPerformance(courseId?: string) {
+  const topics = useMemo(() => {
+    if (courseId) {
+      return mockTopicPerformance.filter(t => t.course_id === courseId);
+    }
+    return mockTopicPerformance;
+  }, [courseId]);
+
+  // Sort by clarity (lowest first = most problematic)
+  const sorted = [...topics].sort((a, b) => a.clarity_pct - b.clarity_pct);
+
+  return {
+    topics: sorted,
+    problematicTopics: sorted.filter(t => t.clarity_pct < 60),
+    wellUnderstoodTopics: sorted.filter(t => t.clarity_pct >= 80),
+    isLoading: false,
+  };
+}
+
+// ============================================
+// REVISION PLAN HOOK
+// ============================================
+
+export function useRevisionPlan(courseId: string) {
+  const [plan, setPlan] = useState<RevisionPlan | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const generatePlan = useCallback(() => {
+    setIsGenerating(true);
+
+    // Simulate API delay
+    setTimeout(() => {
+      const course = mockCourses.find(c => c.id === courseId);
+      const lectures = mockLectures
+        .filter(l => l.course_id === courseId)
+        .map(l => ({
+          lectureId: l.id,
+          title: l.title,
+          topics: l.topics,
+          feedbackList: mockFeedback.filter(f => f.lecture_id === l.id),
+          date: l.date_time,
+        }));
+
+      const revisionPlan = computeRevisionPlan({
+        courseId,
+        courseName: course?.title || '',
+        lectures,
+      });
+
+      setPlan(revisionPlan);
+      setIsGenerating(false);
+    }, 1000);
+  }, [courseId]);
+
+  return {
+    plan,
+    isGenerating,
+    generatePlan,
+  };
+}
+
+// ============================================
+// AI INSIGHTS HOOK
+// ============================================
+
+export function useProfessorInsights(filters?: { priority?: string; limit?: number }) {
+  const insights = useMemo(() => {
+    let filtered = [...mockProfessorInsights];
+
+    if (filters?.priority) {
+      filtered = filtered.filter(i => i.priority === filters.priority);
+    }
+    if (filters?.limit) {
+      filtered = filtered.slice(0, filters.limit);
+    }
+
+    return filtered;
+  }, [filters]);
+
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
+
+  const dismissInsight = useCallback((id: string) => {
+    setDismissedIds(prev => new Set([...prev, id]));
+  }, []);
+
+  const activeInsights = insights.filter(i => !dismissedIds.has(i.id));
+
+  return {
+    insights: activeInsights,
+    dismissInsight,
+    isLoading: false,
+  };
+}
+
+// ============================================
+// ANALYTICS HOOK
+// ============================================
+
+export function useCourseAnalytics(courseId: string) {
+  const course = mockCourses.find(c => c.id === courseId);
+  const lectures = mockLectures.filter(l => l.course_id === courseId);
+  const topics = mockTopicPerformance.filter(t => t.course_id === courseId);
+
+  // Generate weekly trends
+  const weeklyTrends = lectures.map((lecture, index) => {
+    const feedback = mockFeedback.filter(f => f.lecture_id === lecture.id);
+    const analysis = analyzeLectureFeedback(feedback);
+    return {
+      week: `Week ${Math.floor(index / 2) + 1}`,
+      lecture: lecture.title,
+      understanding: analysis.summary.full_pct + (analysis.summary.partial_pct * 0.5),
+      responseRate: feedback.length / (course?.student_count || 1) * 100,
+    };
+  });
+
+  // Engagement rate
+  const totalPossibleFeedback = lectures.length * (course?.student_count || 0);
+  const actualFeedback = mockFeedback.filter(f =>
+    lectures.some(l => l.id === f.lecture_id)
+  ).length;
+  const engagementRate = totalPossibleFeedback > 0
+    ? Math.round((actualFeedback / totalPossibleFeedback) * 100)
+    : 0;
+
+  return {
+    course,
+    weeklyTrends,
+    topicPerformance: topics,
+    engagementRate,
+    isLoading: false,
+  };
+}
