@@ -1140,6 +1140,7 @@ export interface StudentDashboardData {
   weekly_understanding_trend: number[];
   ai_tips_count: number;
   peer_comparison_percentile: number;
+  lastActive?: string;
   pendingFeedbacks?: {
     items: Array<{
       lectureId: string;
@@ -1669,4 +1670,10 @@ export const enhancedMockData = {
   courses: enhancedCourses,
   professorDashboards,
   studentDashboards,
+  // Add these references from mockDataV2 for compatibility
+  lectures: [] as any[],
+  feedback: [] as any[],
+  weeklyPerformance: [] as any[],
+  topicPerformance: [] as any[],
+  studentInsights: [] as any[],
 };

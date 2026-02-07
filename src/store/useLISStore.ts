@@ -54,10 +54,19 @@ export interface Lecture {
   topics: string[];
   date: string;
   duration: number; // minutes
+  duration_minutes?: number; // alias for compatibility
+  time?: string; // optional time string
   status: 'scheduled' | 'live' | 'completed';
   attendees: string[]; // Student IDs who attended
   qrCode?: string;
   createdAt: string;
+  // Computed/derived fields for UI components
+  understanding_avg?: number;
+  feedback_count?: number;
+  unread_count?: number;
+  silent_count?: number;
+  student_count?: number;
+  course_code?: string;
 }
 
 export interface Topic {

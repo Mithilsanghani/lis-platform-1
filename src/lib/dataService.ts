@@ -21,8 +21,8 @@ import * as dataHelpers from '../data/dataHelpers';
 // ==================== MOCK DATABASE (ENHANCED) ====================
 const MOCK_USERS = [...enhancedMockData.professors, ...enhancedMockData.students];
 const MOCK_COURSES = enhancedMockData.courses;
-const MOCK_LECTURES = enhancedMockData.lectures || [];
-const MOCK_FEEDBACKS = enhancedMockData.feedback || [];
+const MOCK_LECTURES = (enhancedMockData.lectures || []) as any[];
+const MOCK_FEEDBACKS = (enhancedMockData.feedback || []) as any[];
 
 
 // Track which lectures student has NOT submitted feedback for
@@ -49,7 +49,7 @@ export const DataService = {
 
   getCourses: (userId: string, role: UserRole) => {
     if (role === 'professor') {
-      return MOCK_COURSES.filter(c => c.created_by === userId || c.professorId === userId);
+      return MOCK_COURSES.filter(c => c.created_by === userId);
     }
     // For students, return enrolled courses (mock: all courses)
     return MOCK_COURSES;
@@ -124,7 +124,7 @@ export const DataService = {
     // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 500));
     
-    const newFeedback: Feedback = {
+    const newFeedback: any = {
       id: `fb-${Date.now()}`,
       lectureId,
       studentId,
@@ -269,8 +269,15 @@ export const DataService = {
 function getStudentMetrics(studentId: string): DashboardMetrics {
   // You can further enhance this to use dataHelpers.getStudentById etc.
   const student = dataHelpers.getStudentById(studentId);
-  const dashboard = student?.dashboard;
-  return dashboard?.metrics || {
+  const dashboard = student?.dashboard as any;
+  return (dashboard?.metrics || dashboard) ? {
+    weeklyProgress: dashboard.weeklyProgress || { percentage: 0, feedbacksSubmitted: 0, lecturesUnderstood: 0, totalLectures: 0, trend: 'up', trendValue: 0 },
+    pendingFeedbacks: dashboard.pendingFeedbacks || { count: 0, items: [] },
+    activeCourses: dashboard.activeCourses || { count: 0, courses: [] },
+    feedbackStats: dashboard.feedbackStats || { submitted: 0, thisWeek: 0, thisSemester: 0 },
+    streak: dashboard.streak || { days: 0, isActive: false, lastActivity: '' },
+    averageScore: dashboard.averageScore || { percentage: 0, trend: 'up', trendValue: 0, breakdown: { understood: 0, partial: 0, notClear: 0 } },
+  } : {
     weeklyProgress: { percentage: 0, feedbacksSubmitted: 0, lecturesUnderstood: 0, totalLectures: 0, trend: 'up', trendValue: 0 },
     pendingFeedbacks: { count: 0, items: [] },
     activeCourses: { count: 0, courses: [] },
@@ -282,8 +289,15 @@ function getStudentMetrics(studentId: string): DashboardMetrics {
 
 function getProfessorMetrics(professorId: string): DashboardMetrics {
   const professor = dataHelpers.getProfessorById(professorId);
-  const dashboard = professor?.dashboard;
-  return dashboard?.metrics || {
+  const dashboard = professor?.dashboard as any;
+  return (dashboard?.metrics || dashboard) ? {
+    weeklyProgress: dashboard.weeklyProgress || { percentage: 0, feedbacksSubmitted: 0, lecturesUnderstood: 0, totalLectures: 0, trend: 'up', trendValue: 0 },
+    pendingFeedbacks: dashboard.pendingFeedbacks || { count: 0, items: [] },
+    activeCourses: dashboard.activeCourses || { count: 0, courses: [] },
+    feedbackStats: dashboard.feedbackStats || { submitted: 0, thisWeek: 0, thisSemester: 0 },
+    streak: dashboard.streak || { days: 0, isActive: false, lastActivity: '' },
+    averageScore: dashboard.averageScore || { percentage: 0, trend: 'up', trendValue: 0, breakdown: { understood: 0, partial: 0, notClear: 0 } },
+  } : {
     weeklyProgress: { percentage: 0, feedbacksSubmitted: 0, lecturesUnderstood: 0, totalLectures: 0, trend: 'up', trendValue: 0 },
     pendingFeedbacks: { count: 0, items: [] },
     activeCourses: { count: 0, courses: [] },

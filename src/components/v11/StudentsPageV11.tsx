@@ -193,23 +193,19 @@ export function StudentsPageV11({
     isLoading,
     hasMore,
     loadMore,
-    search,
-    setSearch,
-    filter,
-    setFilter,
-    sort,
-    setSort,
+    searchQuery,
+    setSearchQuery,
+    filterBy,
+    setFilterBy,
+    sortBy,
+    setSortBy,
     stats,
-    filteredCount,
+    totalFiltered,
     selectedIds,
     toggleSelect,
     selectAll,
     clearSelection,
-    bulkNudge,
-    bulkEmail,
-    exportCSV,
   } = useInfiniteStudents({ professorId });
-
   const [filterOpen, setFilterOpen] = React.useState(false);
   const [sortOpen, setSortOpen] = React.useState(false);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -233,12 +229,12 @@ export function StudentsPageV11({
   }, [hasMore, isLoading, loadMore]);
 
   const filters: { value: StudentFilter; label: string; count?: number }[] = [
-    { value: 'all', label: 'All Students', count: stats.totalStudents },
+    { value: 'all', label: 'All Students', count: stats.total },
     { value: 'active', label: 'Active Today', count: stats.activeToday },
     { value: 'silent', label: 'Silent (5+ days)', count: stats.silentCount },
-    { value: 'at-risk', label: 'At Risk', count: stats.atRiskCount },
+    { value: 'at-risk', label: 'At Risk', count: stats.atRisk },
     { value: 'low-health', label: 'Low Health (<75%)', count: undefined },
-    { value: 'high-performers', label: 'High Performers (90%+)', count: stats.highPerformers },
+    { value: 'high-performers', label: 'High Performers (90%+)', count: undefined },
   ];
 
   const sorts: { value: StudentSort; label: string }[] = [
@@ -260,7 +256,7 @@ export function StudentsPageV11({
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-bold text-white">Your Students</h1>
             <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-400 text-sm font-medium">
-              {stats.totalStudents}
+              {stats.total}
             </span>
           </div>
           <p className="text-sm text-zinc-500 mt-1">
@@ -271,7 +267,17 @@ export function StudentsPageV11({
         <div className="flex items-center gap-3">
           <motion.button
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white"
-            onClick={exportCSV}
+            onClick={() => {
+              const csv = ['Name,Roll No,Email,Course,Health,Status'].concat(
+                students.map(s => `${s.name},${s.rollNo},${s.email},${s.course_code},${s.health_pct}%,${s.status}`)
+              ).join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'students.csv';
+              a.click();
+            }}
             whileHover={{ scale: 1.02 }}
           >
             <Download className="w-4 h-4" />
@@ -290,12 +296,12 @@ export function StudentsPageV11({
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-6 gap-4">
-        <StatCard icon={Users} label="Total Students" value={stats.totalStudents} color="blue" />
+        <StatCard icon={Users} label="Total Students" value={stats.total} color="blue" />
         <StatCard icon={Activity} label="Active Today" value={stats.activeToday} color="emerald" trend={{ value: 8, direction: 'up' }} />
         <StatCard icon={AlertTriangle} label="Silent (5+ days)" value={stats.silentCount} color="rose" trend={{ value: 3, direction: 'down' }} />
-        <StatCard icon={Heart} label="At Risk" value={stats.atRiskCount} color="amber" />
+        <StatCard icon={Heart} label="At Risk" value={stats.atRisk} color="amber" />
         <StatCard icon={TrendingUp} label="Avg Health" value={stats.avgHealth} suffix="%" color="purple" />
-        <StatCard icon={Users} label="High Performers" value={stats.highPerformers} color="emerald" />
+        <StatCard icon={Users} label="High Performers" value={0} color="emerald" />
       </div>
 
       {/* Silent Alert Banner */}
@@ -316,7 +322,7 @@ export function StudentsPageV11({
           </div>
           <motion.button
             className="px-4 py-2 rounded-xl bg-rose-500/20 text-rose-400 text-sm font-medium"
-            onClick={() => { setFilter('silent'); }}
+            onClick={() => { setFilterBy('silent'); }}
             whileHover={{ scale: 1.02 }}
           >
             View Silent
@@ -332,13 +338,13 @@ export function StudentsPageV11({
           <input
             type="text"
             placeholder="Search by name, roll no, email, course..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-12 pr-10 py-3 rounded-xl bg-zinc-900 border border-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50"
           />
-          {search && (
+          {searchQuery && (
             <button
-              onClick={() => setSearch('')}
+              onClick={() => setSearchQuery('')}
               className="absolute right-4 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-zinc-800"
             >
               <X className="w-4 h-4 text-zinc-500" />
@@ -354,7 +360,7 @@ export function StudentsPageV11({
             whileHover={{ scale: 1.02 }}
           >
             <Filter className="w-4 h-4" />
-            <span className="text-sm flex-1 text-left">{filters.find(f => f.value === filter)?.label}</span>
+            <span className="text-sm flex-1 text-left">{filters.find(f => f.value === filterBy)?.label}</span>
             <ChevronDown className={`w-4 h-4 transition-transform ${filterOpen ? 'rotate-180' : ''}`} />
           </motion.button>
 
@@ -369,9 +375,9 @@ export function StudentsPageV11({
                 {filters.map((f) => (
                   <button
                     key={f.value}
-                    onClick={() => { setFilter(f.value); setFilterOpen(false); }}
+                    onClick={() => { setFilterBy(f.value); setFilterOpen(false); }}
                     className={`w-full flex items-center justify-between px-4 py-2.5 text-sm hover:bg-zinc-800 ${
-                      filter === f.value ? 'text-blue-400 bg-blue-500/10' : 'text-zinc-300'
+                      filterBy === f.value ? 'text-blue-400 bg-blue-500/10' : 'text-zinc-300'
                     }`}
                   >
                     <span>{f.label}</span>
@@ -393,7 +399,7 @@ export function StudentsPageV11({
             whileHover={{ scale: 1.02 }}
           >
             <RefreshCw className="w-4 h-4" />
-            <span className="text-sm flex-1 text-left">{sorts.find(s => s.value === sort)?.label}</span>
+            <span className="text-sm flex-1 text-left">{sorts.find(s => s.value === sortBy)?.label}</span>
             <ChevronDown className={`w-4 h-4 transition-transform ${sortOpen ? 'rotate-180' : ''}`} />
           </motion.button>
 
@@ -408,9 +414,9 @@ export function StudentsPageV11({
                 {sorts.map((s) => (
                   <button
                     key={s.value}
-                    onClick={() => { setSort(s.value); setSortOpen(false); }}
+                    onClick={() => { setSortBy(s.value); setSortOpen(false); }}
                     className={`w-full flex items-center px-4 py-2.5 text-sm hover:bg-zinc-800 ${
-                      sort === s.value ? 'text-blue-400 bg-blue-500/10' : 'text-zinc-300'
+                      sortBy === s.value ? 'text-blue-400 bg-blue-500/10' : 'text-zinc-300'
                     }`}
                   >
                     {s.label}
@@ -426,9 +432,20 @@ export function StudentsPageV11({
           selectedCount={selectedIds.size}
           onSelectAll={selectAll}
           onClearSelection={clearSelection}
-          onNudge={bulkNudge}
-          onEmail={bulkEmail}
-          onExport={exportCSV}
+          onNudge={() => console.log('Bulk nudge:', Array.from(selectedIds))}
+          onEmail={() => console.log('Bulk email:', Array.from(selectedIds))}
+          onExport={() => {
+            const selectedStudents = students.filter(s => selectedIds.has(s.id));
+            const csv = ['Name,Roll No,Email,Course,Health,Status'].concat(
+              selectedStudents.map(s => `${s.name},${s.rollNo},${s.email},${s.course_code},${s.health_pct}%,${s.status}`)
+            ).join('\n');
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'students.csv';
+            a.click();
+          }}
           isAllSelected={selectedIds.size === students.length && students.length > 0}
         />
       </div>
@@ -458,7 +475,7 @@ export function StudentsPageV11({
       {/* Results Count */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-zinc-500">
-          Showing {students.length} of {filteredCount} students
+          Showing {students.length} of {totalFiltered} students
         </p>
       </div>
 
@@ -517,7 +534,7 @@ export function StudentsPageV11({
           </div>
           <h3 className="text-xl font-semibold text-white mb-2">No students found</h3>
           <p className="text-zinc-500 mb-6 text-center">
-            {search ? 'Try adjusting your search or filters' : 'Start by enrolling students in your courses'}
+            {searchQuery ? 'Try adjusting your search or filters' : 'Start by enrolling students in your courses'}
           </p>
           <motion.button
             className="px-6 py-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium"

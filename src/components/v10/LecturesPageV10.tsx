@@ -692,11 +692,11 @@ export function LecturesPageV10({
                         <span className="text-xs text-zinc-500">
                           {option.value === 'all' ? filterCounts.all :
                            option.value === 'today' ? filterCounts.today :
-                           option.value === 'this-week' ? filterCounts.thisWeek :
+                           option.value === 'this-week' ? filterCounts['this-week'] :
                            option.value === 'live' ? filterCounts.live :
                            option.value === 'scheduled' ? filterCounts.scheduled :
                            option.value === 'unread' ? filterCounts.unread :
-                           filterCounts.lowUnderstanding}
+                           filterCounts['low-understanding']}
                         </span>
                         {filterBy === option.value && <Check className="w-4 h-4" />}
                       </div>

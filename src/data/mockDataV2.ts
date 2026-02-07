@@ -12,9 +12,11 @@ import type {
   LectureInsights,
   CourseInsights,
   SilentFlag,
+  SilentReason,
   UnderstandingLevel,
   FeedbackReason,
   UserRole,
+  TrendDirection,
 } from '../types/lis-v2';
 
 // ================== Helper Functions ==================
@@ -35,19 +37,19 @@ const daysAgo = (days: number): string => {
 // ================== Users ==================
 
 export const mockStudents: User[] = [
-  { id: 's1', email: 'alex@university.edu', name: 'Alex Johnson', role: 'student', department_id: 'd1', created_at: daysAgo(180) },
-  { id: 's2', email: 'emma@university.edu', name: 'Emma Wilson', role: 'student', department_id: 'd1', created_at: daysAgo(180) },
-  { id: 's3', email: 'michael@university.edu', name: 'Michael Brown', role: 'student', department_id: 'd1', created_at: daysAgo(180) },
-  { id: 's4', email: 'sarah@university.edu', name: 'Sarah Davis', role: 'student', department_id: 'd1', created_at: daysAgo(180) },
-  { id: 's5', email: 'james@university.edu', name: 'James Miller', role: 'student', department_id: 'd1', created_at: daysAgo(180) },
-  { id: 's6', email: 'olivia@university.edu', name: 'Olivia Garcia', role: 'student', department_id: 'd1', created_at: daysAgo(180) },
-  { id: 's7', email: 'david@university.edu', name: 'David Martinez', role: 'student', department_id: 'd1', created_at: daysAgo(180) },
-  { id: 's8', email: 'sophia@university.edu', name: 'Sophia Anderson', role: 'student', department_id: 'd1', created_at: daysAgo(180) },
+  { id: 's1', email: 'alex@university.edu', full_name: 'Alex Johnson', role: 'student', department: 'Computer Science', is_active: true, created_at: daysAgo(180), updated_at: daysAgo(1) },
+  { id: 's2', email: 'emma@university.edu', full_name: 'Emma Wilson', role: 'student', department: 'Computer Science', is_active: true, created_at: daysAgo(180), updated_at: daysAgo(1) },
+  { id: 's3', email: 'michael@university.edu', full_name: 'Michael Brown', role: 'student', department: 'Computer Science', is_active: true, created_at: daysAgo(180), updated_at: daysAgo(1) },
+  { id: 's4', email: 'sarah@university.edu', full_name: 'Sarah Davis', role: 'student', department: 'Computer Science', is_active: true, created_at: daysAgo(180), updated_at: daysAgo(1) },
+  { id: 's5', email: 'james@university.edu', full_name: 'James Miller', role: 'student', department: 'Computer Science', is_active: true, created_at: daysAgo(180), updated_at: daysAgo(1) },
+  { id: 's6', email: 'olivia@university.edu', full_name: 'Olivia Garcia', role: 'student', department: 'Computer Science', is_active: true, created_at: daysAgo(180), updated_at: daysAgo(1) },
+  { id: 's7', email: 'david@university.edu', full_name: 'David Martinez', role: 'student', department: 'Computer Science', is_active: true, created_at: daysAgo(180), updated_at: daysAgo(1) },
+  { id: 's8', email: 'sophia@university.edu', full_name: 'Sophia Anderson', role: 'student', department: 'Computer Science', is_active: true, created_at: daysAgo(180), updated_at: daysAgo(1) },
 ];
 
 export const mockProfessors: User[] = [
-  { id: 'p1', email: 'prof.smith@university.edu', name: 'Dr. John Smith', role: 'professor', department_id: 'd1', created_at: daysAgo(365) },
-  { id: 'p2', email: 'prof.jones@university.edu', name: 'Dr. Emily Jones', role: 'professor', department_id: 'd1', created_at: daysAgo(365) },
+  { id: 'p1', email: 'prof.smith@university.edu', full_name: 'Dr. John Smith', role: 'professor', department: 'Computer Science', is_active: true, created_at: daysAgo(365), updated_at: daysAgo(1) },
+  { id: 'p2', email: 'prof.jones@university.edu', full_name: 'Dr. Emily Jones', role: 'professor', department: 'Computer Science', is_active: true, created_at: daysAgo(365), updated_at: daysAgo(1) },
 ];
 
 // ================== Courses ==================
@@ -56,33 +58,30 @@ export const mockCourses: Course[] = [
   {
     id: 'c1',
     code: 'CS201',
-    name: 'Data Structures',
+    title: 'Data Structures',
     semester: 'Spring 2024',
-    department_id: 'd1',
-    professor_id: 'p1',
-    topics: ['Arrays', 'Linked Lists', 'Trees', 'Graphs', 'Hash Tables', 'Heaps', 'Sorting Algorithms'],
+    department: 'Computer Science',
+    created_by: 'p1',
     created_at: daysAgo(90),
     updated_at: daysAgo(1),
   },
   {
     id: 'c2',
     code: 'CS301',
-    name: 'Operating Systems',
+    title: 'Operating Systems',
     semester: 'Spring 2024',
-    department_id: 'd1',
-    professor_id: 'p1',
-    topics: ['Process Management', 'Memory Management', 'File Systems', 'Concurrency', 'Deadlocks', 'Scheduling'],
+    department: 'Computer Science',
+    created_by: 'p1',
     created_at: daysAgo(90),
     updated_at: daysAgo(2),
   },
   {
     id: 'c3',
     code: 'CS302',
-    name: 'Computer Networks',
+    title: 'Computer Networks',
     semester: 'Spring 2024',
-    department_id: 'd1',
-    professor_id: 'p2',
-    topics: ['OSI Model', 'TCP/IP', 'Routing', 'DNS', 'HTTP', 'Security'],
+    department: 'Computer Science',
+    created_by: 'p2',
     created_at: daysAgo(90),
     updated_at: daysAgo(3),
   },
@@ -92,26 +91,26 @@ export const mockCourses: Course[] = [
 
 export const mockLectures: Lecture[] = [
   // Data Structures lectures
-  { id: 'l1', course_id: 'c1', lecture_number: 1, title: 'Introduction to Data Structures', date: daysAgo(60), topics: ['Arrays', 'Big O Notation'], status: 'completed', created_at: daysAgo(61) },
-  { id: 'l2', course_id: 'c1', lecture_number: 2, title: 'Arrays and Dynamic Arrays', date: daysAgo(53), topics: ['Arrays', 'Dynamic Arrays'], status: 'completed', created_at: daysAgo(54) },
-  { id: 'l3', course_id: 'c1', lecture_number: 3, title: 'Linked Lists', date: daysAgo(46), topics: ['Linked Lists', 'Singly Linked', 'Doubly Linked'], status: 'completed', created_at: daysAgo(47) },
-  { id: 'l4', course_id: 'c1', lecture_number: 4, title: 'Stacks and Queues', date: daysAgo(39), topics: ['Stacks', 'Queues', 'Deques'], status: 'completed', created_at: daysAgo(40) },
-  { id: 'l5', course_id: 'c1', lecture_number: 5, title: 'Binary Trees', date: daysAgo(32), topics: ['Trees', 'Binary Trees', 'Traversal'], status: 'completed', created_at: daysAgo(33) },
-  { id: 'l6', course_id: 'c1', lecture_number: 6, title: 'Binary Search Trees', date: daysAgo(25), topics: ['Trees', 'BST', 'Insertion', 'Deletion'], status: 'completed', created_at: daysAgo(26) },
-  { id: 'l7', course_id: 'c1', lecture_number: 7, title: 'AVL Trees', date: daysAgo(18), topics: ['Trees', 'AVL', 'Rotations'], status: 'completed', created_at: daysAgo(19) },
-  { id: 'l8', course_id: 'c1', lecture_number: 8, title: 'Hash Tables', date: daysAgo(11), topics: ['Hash Tables', 'Collision Resolution'], status: 'completed', created_at: daysAgo(12) },
-  { id: 'l9', course_id: 'c1', lecture_number: 9, title: 'Graphs Introduction', date: daysAgo(4), topics: ['Graphs', 'Representations'], status: 'completed', created_at: daysAgo(5) },
-  { id: 'l10', course_id: 'c1', lecture_number: 10, title: 'Graph Traversals', date: daysAgo(0), topics: ['Graphs', 'BFS', 'DFS'], status: 'scheduled', created_at: daysAgo(1) },
+  { id: 'l1', course_id: 'c1', title: 'Introduction to Data Structures', date_time: daysAgo(60), duration_mins: 90, mode: 'offline', topics: ['Arrays', 'Big O Notation'], is_cancelled: false, created_at: daysAgo(61), updated_at: daysAgo(61) },
+  { id: 'l2', course_id: 'c1', title: 'Arrays and Dynamic Arrays', date_time: daysAgo(53), duration_mins: 90, mode: 'offline', topics: ['Arrays', 'Dynamic Arrays'], is_cancelled: false, created_at: daysAgo(54), updated_at: daysAgo(54) },
+  { id: 'l3', course_id: 'c1', title: 'Linked Lists', date_time: daysAgo(46), duration_mins: 90, mode: 'offline', topics: ['Linked Lists', 'Singly Linked', 'Doubly Linked'], is_cancelled: false, created_at: daysAgo(47), updated_at: daysAgo(47) },
+  { id: 'l4', course_id: 'c1', title: 'Stacks and Queues', date_time: daysAgo(39), duration_mins: 90, mode: 'offline', topics: ['Stacks', 'Queues', 'Deques'], is_cancelled: false, created_at: daysAgo(40), updated_at: daysAgo(40) },
+  { id: 'l5', course_id: 'c1', title: 'Binary Trees', date_time: daysAgo(32), duration_mins: 90, mode: 'offline', topics: ['Trees', 'Binary Trees', 'Traversal'], is_cancelled: false, created_at: daysAgo(33), updated_at: daysAgo(33) },
+  { id: 'l6', course_id: 'c1', title: 'Binary Search Trees', date_time: daysAgo(25), duration_mins: 90, mode: 'offline', topics: ['Trees', 'BST', 'Insertion', 'Deletion'], is_cancelled: false, created_at: daysAgo(26), updated_at: daysAgo(26) },
+  { id: 'l7', course_id: 'c1', title: 'AVL Trees', date_time: daysAgo(18), duration_mins: 90, mode: 'offline', topics: ['Trees', 'AVL', 'Rotations'], is_cancelled: false, created_at: daysAgo(19), updated_at: daysAgo(19) },
+  { id: 'l8', course_id: 'c1', title: 'Hash Tables', date_time: daysAgo(11), duration_mins: 90, mode: 'offline', topics: ['Hash Tables', 'Collision Resolution'], is_cancelled: false, created_at: daysAgo(12), updated_at: daysAgo(12) },
+  { id: 'l9', course_id: 'c1', title: 'Graphs Introduction', date_time: daysAgo(4), duration_mins: 90, mode: 'offline', topics: ['Graphs', 'Representations'], is_cancelled: false, created_at: daysAgo(5), updated_at: daysAgo(5) },
+  { id: 'l10', course_id: 'c1', title: 'Graph Traversals', date_time: daysAgo(0), duration_mins: 90, mode: 'offline', topics: ['Graphs', 'BFS', 'DFS'], is_cancelled: false, created_at: daysAgo(1), updated_at: daysAgo(1) },
   
   // Operating Systems lectures
-  { id: 'l11', course_id: 'c2', lecture_number: 1, title: 'OS Introduction', date: daysAgo(58), topics: ['Process Management'], status: 'completed', created_at: daysAgo(59) },
-  { id: 'l12', course_id: 'c2', lecture_number: 2, title: 'Process Scheduling', date: daysAgo(51), topics: ['Scheduling', 'Round Robin'], status: 'completed', created_at: daysAgo(52) },
-  { id: 'l13', course_id: 'c2', lecture_number: 3, title: 'Memory Management', date: daysAgo(44), topics: ['Memory Management', 'Paging'], status: 'completed', created_at: daysAgo(45) },
-  { id: 'l14', course_id: 'c2', lecture_number: 4, title: 'Virtual Memory', date: daysAgo(37), topics: ['Memory Management', 'Virtual Memory'], status: 'completed', created_at: daysAgo(38) },
-  { id: 'l15', course_id: 'c2', lecture_number: 5, title: 'Deadlocks', date: daysAgo(30), topics: ['Deadlocks', 'Prevention'], status: 'completed', created_at: daysAgo(31) },
-  { id: 'l16', course_id: 'c2', lecture_number: 6, title: 'File Systems', date: daysAgo(23), topics: ['File Systems', 'Inodes'], status: 'completed', created_at: daysAgo(24) },
-  { id: 'l17', course_id: 'c2', lecture_number: 7, title: 'Concurrency', date: daysAgo(16), topics: ['Concurrency', 'Semaphores'], status: 'completed', created_at: daysAgo(17) },
-  { id: 'l18', course_id: 'c2', lecture_number: 8, title: 'Synchronization', date: daysAgo(9), topics: ['Concurrency', 'Monitors'], status: 'completed', created_at: daysAgo(10) },
+  { id: 'l11', course_id: 'c2', title: 'OS Introduction', date_time: daysAgo(58), duration_mins: 90, mode: 'offline', topics: ['Process Management'], is_cancelled: false, created_at: daysAgo(59), updated_at: daysAgo(59) },
+  { id: 'l12', course_id: 'c2', title: 'Process Scheduling', date_time: daysAgo(51), duration_mins: 90, mode: 'offline', topics: ['Scheduling', 'Round Robin'], is_cancelled: false, created_at: daysAgo(52), updated_at: daysAgo(52) },
+  { id: 'l13', course_id: 'c2', title: 'Memory Management', date_time: daysAgo(44), duration_mins: 90, mode: 'offline', topics: ['Memory Management', 'Paging'], is_cancelled: false, created_at: daysAgo(45), updated_at: daysAgo(45) },
+  { id: 'l14', course_id: 'c2', title: 'Virtual Memory', date_time: daysAgo(37), duration_mins: 90, mode: 'offline', topics: ['Memory Management', 'Virtual Memory'], is_cancelled: false, created_at: daysAgo(38), updated_at: daysAgo(38) },
+  { id: 'l15', course_id: 'c2', title: 'Deadlocks', date_time: daysAgo(30), duration_mins: 90, mode: 'offline', topics: ['Deadlocks', 'Prevention'], is_cancelled: false, created_at: daysAgo(31), updated_at: daysAgo(31) },
+  { id: 'l16', course_id: 'c2', title: 'File Systems', date_time: daysAgo(23), duration_mins: 90, mode: 'offline', topics: ['File Systems', 'Inodes'], is_cancelled: false, created_at: daysAgo(24), updated_at: daysAgo(24) },
+  { id: 'l17', course_id: 'c2', title: 'Concurrency', date_time: daysAgo(16), duration_mins: 90, mode: 'offline', topics: ['Concurrency', 'Semaphores'], is_cancelled: false, created_at: daysAgo(17), updated_at: daysAgo(17) },
+  { id: 'l18', course_id: 'c2', title: 'Synchronization', date_time: daysAgo(9), duration_mins: 90, mode: 'offline', topics: ['Concurrency', 'Monitors'], is_cancelled: false, created_at: daysAgo(10), updated_at: daysAgo(10) },
 ];
 
 // ================== Feedback Generation ==================
@@ -149,11 +148,13 @@ function generateFeedbackForLecture(lectureId: string, lectureNumber: number): F
       id: generateId(),
       lecture_id: lectureId,
       student_id: student.id,
-      understanding_level: level,
-      question: hasQuestion ? generateQuestion(lectureNumber) : undefined,
-      reason: hasReason ? randomChoice(feedbackReasons) : undefined,
+      understanding: level,
+      reasons: hasReason ? [randomChoice(feedbackReasons)] : [],
+      subtopics: mockLectures.find(l => l.id === lectureId)?.topics.slice(0, randomInt(1, 2)) || [],
+      comment: hasQuestion ? generateQuestion(lectureNumber) : '',
       is_anonymous: Math.random() > 0.7,
-      created_at: daysAgo(randomInt(0, 7)),
+      submitted_at: daysAgo(randomInt(0, 7)),
+      updated_at: daysAgo(randomInt(0, 7)),
     });
   });
 
@@ -175,8 +176,8 @@ function generateQuestion(lectureNumber: number): string {
 }
 
 export const mockFeedback: Feedback[] = mockLectures
-  .filter(l => l.status === 'completed')
-  .flatMap(l => generateFeedbackForLecture(l.id, l.lecture_number));
+  .filter(l => !l.is_cancelled && new Date(l.date_time) < new Date())
+  .flatMap((l, idx) => generateFeedbackForLecture(l.id, idx + 1));
 
 // ================== Lecture Insights ==================
 
@@ -185,50 +186,59 @@ function calculateLectureInsights(lectureId: string): LectureInsights {
   const lecture = mockLectures.find(l => l.id === lectureId);
   
   const total = lectureFeedback.length;
-  const fullyUnderstood = lectureFeedback.filter(f => f.understanding_level === 'fully_understood').length;
-  const partiallyUnderstood = lectureFeedback.filter(f => f.understanding_level === 'partially_understood').length;
-  const notUnderstood = lectureFeedback.filter(f => f.understanding_level === 'not_understood').length;
+  const fullyUnderstood = lectureFeedback.filter(f => f.understanding === 'fully_understood').length;
+  const partiallyUnderstood = lectureFeedback.filter(f => f.understanding === 'partially_understood').length;
+  const notUnderstood = lectureFeedback.filter(f => f.understanding === 'not_understood').length;
   
   const understandingPct = total > 0 
     ? Math.round((fullyUnderstood * 100 + partiallyUnderstood * 50) / total)
     : 0;
 
   const questions = lectureFeedback
-    .filter(f => f.question)
-    .map(f => f.question!)
+    .filter(f => f.comment && f.comment.trim() !== '')
+    .map(f => f.comment)
     .slice(0, 5);
 
   return {
     id: generateId(),
     lecture_id: lectureId,
     response_count: total,
+    enrolled_count: mockStudents.length,
     response_rate: Math.round((total / mockStudents.length) * 100),
-    understanding_pct: understandingPct,
-    fully_understood_count: fullyUnderstood,
-    partially_understood_count: partiallyUnderstood,
-    not_understood_count: notUnderstood,
-    top_questions: questions,
-    confusion_topics: lecture?.topics.slice(0, 2) || [],
-    ai_summary: `${understandingPct}% understanding with ${total} responses. ${questions.length} questions asked.`,
-    needs_revision: understandingPct < 70,
+    full_count: fullyUnderstood,
+    partial_count: partiallyUnderstood,
+    unclear_count: notUnderstood,
+    full_pct: total > 0 ? Math.round((fullyUnderstood / total) * 100) : 0,
+    partial_pct: total > 0 ? Math.round((partiallyUnderstood / total) * 100) : 0,
+    unclear_pct: total > 0 ? Math.round((notUnderstood / total) * 100) : 0,
+    pace_fast_count: 0,
+    pace_slow_count: 0,
+    examples_few_count: 0,
+    concept_unclear_count: 0,
+    missed_part_count: 0,
+    good_explanation_count: 0,
+    helpful_examples_count: 0,
+    top_subtopics: [],
+    risk_level: understandingPct < 50 ? 'high' : understandingPct < 70 ? 'medium' : 'low',
+    confusion_addressed: false,
     computed_at: new Date().toISOString(),
   };
 }
 
 export const mockLectureInsights: LectureInsights[] = mockLectures
-  .filter(l => l.status === 'completed')
+  .filter(l => !l.is_cancelled && new Date(l.date_time) < new Date())
   .map(l => calculateLectureInsights(l.id));
 
 // ================== Course Insights ==================
 
 function calculateCourseInsights(courseId: string): CourseInsights {
-  const courseLectures = mockLectures.filter(l => l.course_id === courseId && l.status === 'completed');
+  const completedLectures = mockLectures.filter(l => l.course_id === courseId && !l.is_cancelled && new Date(l.date_time) < new Date());
   const courseInsightsData = mockLectureInsights.filter(i => 
-    courseLectures.some(l => l.id === i.lecture_id)
+    completedLectures.some(l => l.id === i.lecture_id)
   );
 
   const avgUnderstanding = courseInsightsData.length > 0
-    ? Math.round(courseInsightsData.reduce((sum, i) => sum + i.understanding_pct, 0) / courseInsightsData.length)
+    ? Math.round(courseInsightsData.reduce((sum, i) => sum + i.full_pct, 0) / courseInsightsData.length)
     : 0;
 
   const avgParticipation = courseInsightsData.length > 0
@@ -238,26 +248,33 @@ function calculateCourseInsights(courseId: string): CourseInsights {
   const recentInsights = courseInsightsData.slice(-3);
   const previousInsights = courseInsightsData.slice(-6, -3);
   
-  let trend: 'improving' | 'declining' | 'stable' = 'stable';
+  let trend: TrendDirection = 'stable';
   if (recentInsights.length >= 2 && previousInsights.length >= 1) {
-    const recentAvg = recentInsights.reduce((s, i) => s + i.understanding_pct, 0) / recentInsights.length;
-    const prevAvg = previousInsights.reduce((s, i) => s + i.understanding_pct, 0) / previousInsights.length;
+    const recentAvg = recentInsights.reduce((s, i) => s + i.full_pct, 0) / recentInsights.length;
+    const prevAvg = previousInsights.reduce((s, i) => s + i.full_pct, 0) / previousInsights.length;
     if (recentAvg > prevAvg + 5) trend = 'improving';
     else if (recentAvg < prevAvg - 5) trend = 'declining';
   }
 
+  const totalFeedback = mockFeedback.filter(f => 
+    completedLectures.some(l => l.id === f.lecture_id)
+  ).length;
+
+  const highRiskLectures = courseInsightsData.filter(i => i.risk_level === 'high').length;
+
   return {
     id: generateId(),
     course_id: courseId,
-    average_understanding: avgUnderstanding,
-    understanding_trend: trend,
-    participation_rate: avgParticipation,
-    at_risk_topics: mockCourses.find(c => c.id === courseId)?.topics.slice(0, 2) || [],
-    strong_topics: mockCourses.find(c => c.id === courseId)?.topics.slice(-2) || [],
-    silent_student_count: randomInt(1, 3),
-    total_feedbacks: mockFeedback.filter(f => 
-      courseLectures.some(l => l.id === f.lecture_id)
-    ).length,
+    avg_understanding_pct: avgUnderstanding,
+    avg_response_rate: avgParticipation,
+    total_lectures: completedLectures.length,
+    total_feedback: totalFeedback,
+    high_risk_lectures: highRiskLectures,
+    high_risk_topics: [],
+    trending_issues: [],
+    silent_students_count: randomInt(1, 3),
+    health_score: avgUnderstanding,
+    trend: trend,
     computed_at: new Date().toISOString(),
   };
 }
@@ -272,30 +289,25 @@ export const mockSilentFlags: SilentFlag[] = [
     student_id: 's5',
     course_id: 'c1',
     level: 'high',
-    reasons: ['low_understanding', 'never_asks_questions'],
+    reason: 'low_understanding' as SilentReason,
     detected_at: daysAgo(7),
-    acknowledged_at: null,
-    resolved_at: null,
   },
   {
     id: 'sf2',
     student_id: 's7',
     course_id: 'c1',
     level: 'moderate',
-    reasons: ['declining_performance'],
+    reason: 'declining_performance' as SilentReason,
     detected_at: daysAgo(3),
     acknowledged_at: daysAgo(1),
-    resolved_at: null,
   },
   {
     id: 'sf3',
     student_id: 's4',
     course_id: 'c2',
     level: 'critical',
-    reasons: ['low_understanding', 'never_asks_questions', 'declining_performance'],
+    reason: 'low_understanding' as SilentReason,
     detected_at: daysAgo(5),
-    acknowledged_at: null,
-    resolved_at: null,
   },
 ];
 
@@ -308,30 +320,32 @@ export const mockStudentMetrics: StudentMetrics[] = mockStudents.flatMap(student
       mockLectures.some(l => l.id === f.lecture_id && l.course_id === course.id)
     );
 
-    const avgUnderstanding = studentFeedback.length > 0
-      ? Math.round(studentFeedback.reduce((sum, f) => {
-          switch (f.understanding_level) {
-            case 'fully_understood': return sum + 100;
-            case 'partially_understood': return sum + 50;
-            case 'not_understood': return sum + 0;
-          }
-        }, 0) / studentFeedback.length)
+    const fullCount = studentFeedback.filter(f => f.understanding === 'fully_understood').length;
+    const partialCount = studentFeedback.filter(f => f.understanding === 'partially_understood').length;
+    const unclearCount = studentFeedback.filter(f => f.understanding === 'not_understood').length;
+
+    const understandingPct = studentFeedback.length > 0
+      ? Math.round((fullCount * 100 + partialCount * 50) / studentFeedback.length)
       : 0;
 
-    const totalLectures = mockLectures.filter(l => l.course_id === course.id && l.status === 'completed').length;
+    const totalLectures = mockLectures.filter(l => l.course_id === course.id && !l.is_cancelled && new Date(l.date_time) < new Date()).length;
 
     return {
       id: generateId(),
       student_id: student.id,
       course_id: course.id,
-      feedback_count: studentFeedback.length,
-      average_understanding: avgUnderstanding,
-      participation_rate: totalLectures > 0 
-        ? Math.round((studentFeedback.length / totalLectures) * 100)
-        : 0,
+      understanding_pct: understandingPct,
+      full_count: fullCount,
+      partial_count: partialCount,
+      unclear_count: unclearCount,
+      feedback_submitted: studentFeedback.length,
+      feedback_pending: Math.max(0, totalLectures - studentFeedback.length),
+      total_lectures: totalLectures,
+      streak_days: randomInt(0, 14),
+      longest_streak: randomInt(0, 30),
       last_feedback_at: studentFeedback.length > 0 
-        ? studentFeedback[studentFeedback.length - 1].created_at
-        : null,
+        ? studentFeedback[studentFeedback.length - 1].submitted_at
+        : undefined,
       computed_at: new Date().toISOString(),
     };
   })

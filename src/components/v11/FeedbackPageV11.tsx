@@ -298,7 +298,6 @@ export function FeedbackPageV11({
     { value: 'unread', label: 'Unread', count: stats.unreadCount },
     { value: 'unresolved', label: 'Unresolved', count: stats.unresolvedCount },
     { value: 'today', label: 'Today', count: stats.todayCount },
-    { value: 'this-week', label: 'This Week' },
     { value: 'low-rating', label: 'Low Rating (1-2)', count: stats.lowRatingCount },
     { value: 'pace', label: 'Pace Issues', count: stats.categoryStats.pace },
     { value: 'examples', label: 'Need Examples', count: stats.categoryStats.examples },
@@ -308,10 +307,9 @@ export function FeedbackPageV11({
   const sorts: { value: FeedbackSort; label: string }[] = [
     { value: 'newest', label: 'Newest First' },
     { value: 'oldest', label: 'Oldest First' },
-    { value: 'rating-asc', label: 'Rating (Low to High)' },
-    { value: 'rating-desc', label: 'Rating (High to Low)' },
+    { value: 'rating-low', label: 'Rating (Low to High)' },
+    { value: 'rating-high', label: 'Rating (High to Low)' },
     { value: 'course', label: 'Course' },
-    { value: 'student', label: 'Student Name' },
   ];
 
   return (

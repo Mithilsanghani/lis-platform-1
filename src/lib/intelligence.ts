@@ -68,11 +68,17 @@ export function analyzeLectureFeedback(feedbackList: Feedback[]): LectureFeedbac
   // Aggregate reasons
   const reasonCounts: Record<FeedbackReason, number> = {
     pace_fast: 0,
+    pace_slow: 0,
+    pace_too_fast: 0,
     examples_few: 0,
+    needs_more_examples: 0,
     concept_unclear: 0,
+    prerequisite_gap: 0,
     missed_part: 0,
     good_explanation: 0,
     helpful_examples: 0,
+    engaging_delivery: 0,
+    other: 0,
   };
 
   feedbackList.forEach(f => {

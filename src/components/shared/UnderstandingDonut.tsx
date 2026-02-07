@@ -5,7 +5,13 @@
 
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
-import type { FeedbackDistribution } from '../../lib/intelligence';
+
+interface FeedbackDistribution {
+  fully_understood: number;
+  partially_understood: number;
+  not_understood: number;
+  total: number;
+}
 
 interface UnderstandingDonutProps {
   distribution: FeedbackDistribution;

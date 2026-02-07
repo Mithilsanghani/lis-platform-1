@@ -373,11 +373,11 @@ export function StudentCourses() {
           {filteredCourses.map((course, index) => (
             <CourseCard
               key={course.id}
-              course={course}
+              course={{...course, type: course.type as "core" | "elective"}}
               index={index}
               onViewLectures={(id) => {
                 const c = courses.find((x) => x.id === id);
-                if (c) setSelectedCourse(c);
+                if (c) setSelectedCourse({...c, type: c.type as "core" | "elective"});
               }}
               onReviewTopics={(id) => console.log('Review topics:', id)}
             />

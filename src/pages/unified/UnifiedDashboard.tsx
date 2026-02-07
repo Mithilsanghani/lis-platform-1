@@ -112,7 +112,7 @@ export function UnifiedDashboard({ role = 'student' }: UnifiedDashboardProps) {
 
       {/* Welcome Card */}
       <WelcomeCard
-        userName={user.name}
+        userName={user?.full_name || user?.email?.split('@')[0] || 'User'}
         role={role}
         pendingCount={metrics.pendingFeedbacks.count}
         streak={metrics.streak.days}

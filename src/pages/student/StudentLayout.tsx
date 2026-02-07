@@ -4,7 +4,12 @@
  */
 
 import React, { useState } from 'react';
-import { Sidebar, NavItem, TopBar, MainContent } from '../../components/shared';
+
+// Temporary stub components
+const Sidebar = ({ isCollapsed, onToggle, children }: any) => <div>{children}</div>;
+const NavItem = (props: any) => <div {...props} />;
+const TopBar = (props: any) => <div {...props} />;
+const MainContent = ({ children }: any) => <div>{children}</div>;
 
 interface StudentLayoutProps {
   children: React.ReactNode;

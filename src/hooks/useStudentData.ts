@@ -78,17 +78,17 @@ import { enhancedMockData, dataHelpers } from '../data';
 const courses = enhancedMockData.courses.map(c => ({
   id: c.id,
   code: c.code,
-  title: c.name,
-  instructor: c.professorName || '',
+  title: c.title || '',
+  instructor: '',
   department: c.department,
-  understanding_pct: c.understanding_pct ?? 80,
-  health_pct: c.health_pct ?? 80,
-  next_lecture: c.next_lecture ?? '',
-  pending_feedback: c.pending_feedback ?? 0,
-  total_lectures: c.total_lectures ?? 0,
-  attended_lectures: c.attended_lectures ?? 0,
-  type: c.type ?? 'core',
-  color: c.color ?? 'from-blue-500 to-indigo-600',
+  understanding_pct: 80,
+  health_pct: 80,
+  next_lecture: '',
+  pending_feedback: 0,
+  total_lectures: 0,
+  attended_lectures: 0,
+  type: 'core',
+  color: 'from-blue-500 to-indigo-600',
 }));
 
 

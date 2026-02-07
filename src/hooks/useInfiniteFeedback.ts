@@ -27,6 +27,7 @@ export interface FeedbackItem {
   read: boolean;
   reply?: string;
   category?: 'pace' | 'examples' | 'clarity' | 'general';
+  similar_count?: number;
 }
 
 export interface FeedbackStats {

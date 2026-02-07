@@ -263,7 +263,7 @@ function calculateUnderstandingTrend(
   // Count consecutive declines
   let declineCount = 0;
   for (let i = 1; i < scores.length; i++) {
-    if (scores[i] < scores[i - 1]) {
+    if (scores[i] !== undefined && scores[i - 1] !== undefined && scores[i]! < scores[i - 1]!) {
       declineCount++;
     } else {
       declineCount = 0;

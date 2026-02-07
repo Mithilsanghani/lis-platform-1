@@ -14,6 +14,7 @@ export const useAuth = () => {
         setUser({
           id: session.user.id,
           email: session.user.email || '',
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
           role: (session.user.user_metadata?.role as 'professor' | 'student') || 'student',
         });
       }
@@ -27,6 +28,7 @@ export const useAuth = () => {
           setUser({
             id: session.user.id,
             email: session.user.email || '',
+            name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
             role: (session.user.user_metadata?.role as 'professor' | 'student') || 'student',
           });
         } else {
@@ -57,6 +59,7 @@ export const useAuth = () => {
         setUser({
           id: data.user.id,
           email: data.user.email || email,
+          name: data.user.user_metadata?.full_name || email.split('@')[0],
           role,
         });
       }
@@ -82,6 +85,7 @@ export const useAuth = () => {
         setUser({
           id: data?.user?.id || 'user_' + Math.random().toString(36).substr(2, 9),
           email: data?.user?.email || email,
+          name: data?.user?.user_metadata?.full_name || email.split('@')[0],
           role,
         });
       }

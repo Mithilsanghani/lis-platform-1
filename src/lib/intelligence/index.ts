@@ -89,8 +89,8 @@ import type {
   SilentStudentFlag,
   RevisionPlan,
   StudentStudyPlan,
-  DailyTip,
 } from './types';
+import type { DailyTip } from './study-tips';
 
 /**
  * Quick analysis of a single lecture

@@ -39,7 +39,7 @@ async function apiFetch<T>(
   return response.json();
 }
 
-function buildQuery(params: Record<string, unknown>): string {
+function buildQuery(params: Record<string, any> | any): string {
   const query = new URLSearchParams();
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined && value !== null && value !== '') {

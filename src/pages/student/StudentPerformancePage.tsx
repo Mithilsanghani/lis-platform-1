@@ -436,7 +436,7 @@ export function StudentPerformancePage() {
         
         {(() => {
           // Generate achievements based on real stats
-          const achievements = [];
+          const achievements: Array<{ emoji: string; title: string; desc: string }> = [];
           
           if (overallStats.totalFeedback >= 1) {
             achievements.push({ emoji: '📚', title: 'First Feedback', desc: 'Submitted your first feedback' });

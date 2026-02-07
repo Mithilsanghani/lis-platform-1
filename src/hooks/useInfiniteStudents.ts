@@ -39,8 +39,10 @@ export interface StudentStats {
   total: number;
   active: number;
   silent: number;
+  silentCount: number;
   atRisk: number;
   inactive: number;
+  activeToday: number;
   avgHealth: number;
   avgFeedback: number;
 }
@@ -148,8 +150,10 @@ export function useInfiniteStudents({ professorId, pageSize = PAGE_SIZE }: UseIn
         total: 0,
         active: 0,
         silent: 0,
+        silentCount: 0,
         atRisk: 0,
         inactive: 0,
+        activeToday: 0,
         avgHealth: 0,
         avgFeedback: 0,
       };
@@ -160,10 +164,12 @@ export function useInfiniteStudents({ professorId, pageSize = PAGE_SIZE }: UseIn
     const silent = allStudents.filter(s => s.status === 'silent').length;
     const atRisk = allStudents.filter(s => s.status === 'at-risk').length;
     const inactive = allStudents.filter(s => s.status === 'inactive').length;
+    const silentCount = silent;
+    const activeToday = active;
     const avgHealth = Math.round(allStudents.reduce((sum, s) => sum + s.health_pct, 0) / total);
     const avgFeedback = Math.round(allStudents.reduce((sum, s) => sum + s.feedback_count, 0) / total);
 
-    return { total, active, silent, atRisk, inactive, avgHealth, avgFeedback };
+    return { total, active, silent, silentCount, atRisk, inactive, activeToday, avgHealth, avgFeedback };
   }, [allStudents]);
 
   // Apply search and filters

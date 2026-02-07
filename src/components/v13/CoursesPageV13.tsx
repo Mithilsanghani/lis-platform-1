@@ -1357,7 +1357,7 @@ function CourseFeedbackModal({ course, onClose, onNudge }: { course: Course; onC
 function CourseStudentsModal({ course, onClose }: { course: Course; onClose: () => void }) {
 
   const mockStudents = dataHelpers.getAllStudents().slice(0, 5).map((s, idx) => ({
-    id: s.id || idx,
+    id: idx,
     name: s.full_name || 'Student',
     email: s.email || '',
     status: s.profile?.participation_level === 'low' ? 'silent' : 'active',

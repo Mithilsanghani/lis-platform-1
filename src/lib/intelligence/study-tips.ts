@@ -274,9 +274,17 @@ export function getPersonalizedTip(
 
 function levelToScore(level: UnderstandingLevel): number {
   switch (level) {
-    case 'fully_understood': return 100;
-    case 'partially_understood': return 50;
-    case 'not_understood': return 0;
+    case 'fully_understood':
+    case 'full':
+      return 100;
+    case 'partially_understood':
+    case 'partial':
+      return 50;
+    case 'not_understood':
+    case 'unclear':
+      return 0;
+    default:
+      return 50;
   }
 }
 

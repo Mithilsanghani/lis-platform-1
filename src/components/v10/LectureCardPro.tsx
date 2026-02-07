@@ -38,8 +38,8 @@ import type { Lecture } from '../../hooks/useInfiniteLectures';
 function EditLectureModal({ lecture, onClose, onSave }: { lecture: Lecture; onClose: () => void; onSave: (data: any) => void }) {
   const [title, setTitle] = useState(lecture.title);
   const [date, setDate] = useState(lecture.date);
-  const [time, setTime] = useState(lecture.time);
-  const [duration, setDuration] = useState(lecture.duration_minutes.toString());
+  const [time, setTime] = useState('');
+  const [duration, setDuration] = useState((lecture.duration_minutes ?? lecture.duration ?? 60).toString());
   
   const handleSave = () => {
     onSave({ title, date, time, duration_minutes: parseInt(duration) });
@@ -190,8 +190,9 @@ function LectureDetailDrawer({ lecture, onClose, onViewFeedback }: { lecture: Le
     return () => document.removeEventListener('keydown', handleEsc);
   }, [onClose]);
 
-  const healthColor = lecture.understanding_avg >= 85 ? 'bg-emerald-500' : lecture.understanding_avg >= 70 ? 'bg-amber-500' : 'bg-rose-500';
-  const healthText = lecture.understanding_avg >= 85 ? 'text-emerald-400' : lecture.understanding_avg >= 70 ? 'text-amber-400' : 'text-rose-400';
+  const understandingAvg = lecture.understanding_avg ?? 0;
+  const healthColor = understandingAvg >= 85 ? 'bg-emerald-500' : understandingAvg >= 70 ? 'bg-amber-500' : 'bg-rose-500';
+  const healthText = understandingAvg >= 85 ? 'text-emerald-400' : understandingAvg >= 70 ? 'text-amber-400' : 'text-rose-400';
 
   // Mock feedback data
   const feedbackSummary = [
@@ -274,17 +275,17 @@ function LectureDetailDrawer({ lecture, onClose, onViewFeedback }: { lecture: Le
           <div className="grid grid-cols-3 gap-3">
             <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700 text-center">
               <Users className="w-5 h-5 text-blue-400 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{lecture.student_count}</p>
+              <p className="text-2xl font-bold text-white">{lecture.student_count ?? 0}</p>
               <p className="text-xs text-zinc-500">Students</p>
             </div>
             <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700 text-center">
               <MessageSquare className="w-5 h-5 text-purple-400 mx-auto mb-2" />
-              <p className="text-2xl font-bold text-white">{lecture.feedback_count}</p>
+              <p className="text-2xl font-bold text-white">{lecture.feedback_count ?? 0}</p>
               <p className="text-xs text-zinc-500">Feedback</p>
             </div>
             <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700 text-center">
               <Activity className="w-5 h-5 text-amber-400 mx-auto mb-2" />
-              <p className={`text-2xl font-bold ${healthText}`}>{lecture.understanding_avg}%</p>
+              <p className={`text-2xl font-bold ${healthText}`}>{understandingAvg}%</p>
               <p className="text-xs text-zinc-500">Understanding</p>
             </div>
           </div>
@@ -299,14 +300,14 @@ function LectureDetailDrawer({ lecture, onClose, onViewFeedback }: { lecture: Le
               <div className="h-3 bg-zinc-700 rounded-full overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${lecture.understanding_avg}%` }}
+                  animate={{ width: `${understandingAvg}%` }}
                   transition={{ duration: 1 }}
                   className={`h-full rounded-full ${healthColor}`}
                 />
               </div>
               <p className="text-xs text-zinc-500 mt-2">
-                {lecture.understanding_avg >= 85 ? 'Students are tracking well!' :
-                 lecture.understanding_avg >= 70 ? 'Some students may need revision' :
+                {understandingAvg >= 85 ? 'Students are tracking well!' :
+                 understandingAvg >= 70 ? 'Some students may need revision' :
                  'Consider revisiting key concepts'}
               </p>
             </div>
@@ -330,7 +331,7 @@ function LectureDetailDrawer({ lecture, onClose, onViewFeedback }: { lecture: Le
           </div>
 
           {/* Silent Students Alert */}
-          {lecture.silent_count > 0 && (
+          {(lecture.silent_count ?? 0) > 0 && (
             <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30">
               <div className="flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-400 mt-0.5" />
@@ -529,9 +530,10 @@ export function LectureCardPro({
     }
   }, [showMenu]);
   
-  const isLowUnderstanding = lecture.status === 'completed' && lecture.understanding_avg < 80;
-  const healthColor = lecture.understanding_avg >= 85 ? 'bg-emerald-500' : lecture.understanding_avg >= 70 ? 'bg-amber-500' : 'bg-rose-500';
-  const healthGlow = lecture.understanding_avg >= 85 ? 'shadow-emerald-500/30' : lecture.understanding_avg >= 70 ? 'shadow-amber-500/30' : 'shadow-rose-500/30';
+  const understandingAvg = lecture.understanding_avg ?? 0;
+  const isLowUnderstanding = lecture.status === 'completed' && understandingAvg < 80;
+  const healthColor = understandingAvg >= 85 ? 'bg-emerald-500' : understandingAvg >= 70 ? 'bg-amber-500' : 'bg-rose-500';
+  const healthGlow = understandingAvg >= 85 ? 'shadow-emerald-500/30' : understandingAvg >= 70 ? 'shadow-amber-500/30' : 'shadow-rose-500/30';
   const status = statusStyles[lecture.status];
 
   const formatDate = (dateStr: string) => {
@@ -736,7 +738,7 @@ export function LectureCardPro({
           
           {/* Alert Badges */}
           <div className="flex items-center gap-1.5 ml-auto">
-            {lecture.unread_count > 0 && (
+            {(lecture.unread_count ?? 0) > 0 && (
               <motion.span
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -746,7 +748,7 @@ export function LectureCardPro({
                 {lecture.unread_count}
               </motion.span>
             )}
-            {lecture.silent_count > 0 && (
+            {(lecture.silent_count ?? 0) > 0 && (
               <motion.span
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
@@ -785,14 +787,14 @@ export function LectureCardPro({
           <div className="mb-4">
             <div className="flex items-center justify-between mb-1.5">
               <span className="text-xs font-medium text-zinc-400">Understanding</span>
-              <span className={`text-sm font-bold ${lecture.understanding_avg >= 85 ? 'text-emerald-400' : lecture.understanding_avg >= 70 ? 'text-amber-400' : 'text-rose-400'}`}>
-                {lecture.understanding_avg}%
+              <span className={`text-sm font-bold ${understandingAvg >= 85 ? 'text-emerald-400' : understandingAvg >= 70 ? 'text-amber-400' : 'text-rose-400'}`}>
+                {understandingAvg}%
               </span>
             </div>
             <div className="h-2 bg-zinc-800 rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }}
-                animate={{ width: `${lecture.understanding_avg}%` }}
+                animate={{ width: `${understandingAvg}%` }}
                 transition={{ duration: 1, delay: index * 0.05 + 0.2, ease: 'easeOut' }}
                 className={`h-full rounded-full ${healthColor} shadow-lg ${healthGlow}`}
               />
@@ -806,21 +808,21 @@ export function LectureCardPro({
             <div className="flex items-center justify-center gap-1 text-zinc-400 mb-0.5">
               <Users className="w-3 h-3" />
             </div>
-            <span className="text-lg font-bold text-white">{lecture.student_count}</span>
+            <span className="text-lg font-bold text-white">{lecture.student_count ?? 0}</span>
             <p className="text-[10px] text-zinc-500">Students</p>
           </div>
           <div className="text-center p-2 rounded-lg bg-zinc-900/50 border border-zinc-800">
             <div className="flex items-center justify-center gap-1 text-blue-400 mb-0.5">
               <MessageSquare className="w-3 h-3" />
             </div>
-            <span className="text-lg font-bold text-white">{lecture.feedback_count}</span>
+            <span className="text-lg font-bold text-white">{lecture.feedback_count ?? 0}</span>
             <p className="text-[10px] text-zinc-500">Feedback</p>
           </div>
           <div className="text-center p-2 rounded-lg bg-zinc-900/50 border border-zinc-800">
             <div className="flex items-center justify-center gap-1 text-amber-400 mb-0.5">
               <Clock className="w-3 h-3" />
             </div>
-            <span className="text-lg font-bold text-white">{lecture.duration_minutes}</span>
+            <span className="text-lg font-bold text-white">{lecture.duration_minutes ?? lecture.duration ?? 0}</span>
             <p className="text-[10px] text-zinc-500">Minutes</p>
           </div>
         </div>

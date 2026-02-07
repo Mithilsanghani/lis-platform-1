@@ -29,8 +29,14 @@ import {
 } from 'lucide-react';
 import type { FeedbackItem } from '../../hooks/useInfiniteFeedback';
 
+// Extended type with additional properties for the feedback card
+interface ExtendedFeedbackItem extends FeedbackItem {
+  similar_count?: number;
+  reply?: string;
+}
+
 // Type alias for backward compatibility
-type Feedback = FeedbackItem;
+type Feedback = ExtendedFeedbackItem;
 
 // ===========================================
 // MODAL WRAPPER - Clean Centered Popup Pattern
@@ -465,7 +471,7 @@ function FeedbackDetailModal({ feedback, onClose }: { feedback: Feedback; onClos
         </div>
 
         {/* Similar Feedback */}
-        {feedback.similar_count > 0 && (
+        {feedback.similar_count && feedback.similar_count > 0 && (
           <div>
             <h3 className="text-sm font-semibold text-zinc-300 mb-3 flex items-center gap-2">
               <Users className="w-4 h-4" /> Similar Feedback ({feedback.similar_count} students)
@@ -487,7 +493,7 @@ function FeedbackDetailModal({ feedback, onClose }: { feedback: Feedback; onClos
         {/* AI Suggestion */}
         <div className="p-4 rounded-xl bg-purple-500/10 border border-purple-500/20">
           <p className="text-sm font-medium text-purple-400 mb-2 flex items-center gap-2">✨ AI Suggestion</p>
-          <p className="text-sm text-zinc-300">Consider spending 5-10 more minutes on recursive base cases in the next lecture. {feedback.similar_count > 0 && `${feedback.similar_count + 1} students have mentioned similar concerns about pace.`}</p>
+          <p className="text-sm text-zinc-300">Consider spending 5-10 more minutes on recursive base cases in the next lecture. {(feedback.similar_count ?? 0) > 0 && `${(feedback.similar_count ?? 0) + 1} students have mentioned similar concerns about pace.`}</p>
         </div>
       </div>
     </Modal>
@@ -645,7 +651,7 @@ export function FeedbackCardPro({
   };
 
   // Category badge color
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = (category: string | undefined) => {
     const colors: Record<string, string> = {
       pace: 'bg-rose-500/20 text-rose-400',
       examples: 'bg-amber-500/20 text-amber-400',
@@ -654,7 +660,7 @@ export function FeedbackCardPro({
       engagement: 'bg-emerald-500/20 text-emerald-400',
       other: 'bg-zinc-500/20 text-zinc-400',
     };
-    return colors[category] || colors.other;
+    return colors[category ?? 'other'] || colors.other;
   };
 
   // Format timestamp
@@ -781,7 +787,7 @@ export function FeedbackCardPro({
               </span>
             )}
           </div>
-          {feedback.similar_count > 0 && (
+          {(feedback.similar_count ?? 0) > 0 && (
             <button
               onClick={() => onViewSimilar(feedback.id)}
               className="flex items-center gap-1 text-xs text-zinc-400 hover:text-blue-400"
