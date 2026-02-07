@@ -20,6 +20,7 @@ import {
   ArrowDownRight,
   Zap,
 } from 'lucide-react';
+import { enhancedMockData } from '../../data';
 
 // ================== Card Components ==================
 
@@ -143,42 +144,30 @@ const ProgressRing: React.FC<{ progress: number; size?: number; strokeWidth?: nu
   );
 };
 
-// ================== Mock Data ==================
 
-const mockPendingFeedback = [
-  {
-    id: '1',
-    lecture: 'Graph Algorithms',
-    course: 'CS301',
-    dueIn: '2 hours',
-    isUrgent: true,
-  },
-  {
-    id: '2',
-    lecture: 'Sorting Techniques',
-    course: 'CS301',
-    dueIn: '1 day',
-    isUrgent: false,
-  },
-];
+const mockPendingFeedback = (enhancedMockData.studentDashboards?.[0]?.pendingFeedbacks?.items || []).map((item: any, idx: number) => ({
+  id: item.lectureId || String(idx),
+  lecture: item.lectureTitle,
+  course: item.courseName,
+  dueIn: item.remainingTime,
+  isUrgent: item.isUrgent,
+}));
 
-const mockWeakTopics = [
-  { id: '1', topic: 'Dynamic Programming', score: 42, course: 'CS301' },
-  { id: '2', topic: 'Tree Traversals', score: 55, course: 'CS301' },
-  { id: '3', topic: 'Hash Tables', score: 61, course: 'CS201' },
-];
+const mockWeakTopics = (enhancedMockData.studentDashboards?.[0]?.focusAreas || []).map((topic: any, idx: number) => ({
+  id: String(idx),
+  topic: topic.topic,
+  score: topic.score,
+  course: topic.course,
+}));
 
-const mockUpcomingLectures = [
-  { id: '1', title: 'Network Flow', course: 'CS301', time: 'Today, 2:00 PM' },
-  { id: '2', title: 'Dijkstra\'s Algorithm', course: 'CS301', time: 'Tomorrow, 10:00 AM' },
-  { id: '3', title: 'B-Trees', course: 'CS201', time: 'Tomorrow, 2:00 PM' },
-];
+const mockUpcomingLectures = ((enhancedMockData.studentDashboards?.[0] as any)?.upcomingLectures || []).map((lecture: any, idx: number) => ({
+  id: String(idx),
+  title: lecture.title,
+  course: lecture.course,
+  time: lecture.time,
+}));
 
-const mockAIInsights = [
-  'You learn better in afternoon sessions - schedule study time accordingly',
-  'Your understanding of trees improved 23% this week',
-  'Focus on Dynamic Programming before next exam',
-];
+const mockAIInsights = ((enhancedMockData as any).studentInsights || []).map((insight: any) => insight.title);
 
 // ================== Main Component ==================
 
@@ -273,13 +262,13 @@ export const StudentOverviewV3: React.FC = () => {
               </button>
             </div>
             <div className="space-y-3">
-              {mockPendingFeedback.map((item) => (
+              {mockPendingFeedback.map((item: any) => (
                 <div
                   key={item.id}
                   className={`
                     p-4 rounded-xl border transition-colors cursor-pointer
-                    ${item.isUrgent 
-                      ? 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20' 
+                    ${item.isUrgent
+                      ? 'bg-red-500/10 border-red-500/30 hover:bg-red-500/20'
                       : 'bg-white/5 border-white/10 hover:bg-white/10'
                     }
                   `}
@@ -316,7 +305,7 @@ export const StudentOverviewV3: React.FC = () => {
               <h3 className="text-lg font-semibold text-white">AI Insights</h3>
             </div>
             <div className="space-y-3">
-              {mockAIInsights.map((insight, index) => (
+              {mockAIInsights.map((insight: any, index: number) => (
                 <div
                   key={index}
                   className="p-3 rounded-xl bg-white/5 border border-white/10"
@@ -348,7 +337,7 @@ export const StudentOverviewV3: React.FC = () => {
               </button>
             </div>
             <div className="space-y-3">
-              {mockWeakTopics.map((topic) => (
+              {mockWeakTopics.map((topic: any) => (
                 <div key={topic.id} className="flex items-center gap-4">
                   <div className="flex-1">
                     <div className="flex items-center justify-between mb-1">
@@ -357,9 +346,8 @@ export const StudentOverviewV3: React.FC = () => {
                     </div>
                     <div className="h-2 rounded-full bg-white/10 overflow-hidden">
                       <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          topic.score < 50 ? 'bg-red-500' : topic.score < 70 ? 'bg-orange-500' : 'bg-green-500'
-                        }`}
+                        className={`h-full rounded-full transition-all duration-500 ${topic.score < 50 ? 'bg-red-500' : topic.score < 70 ? 'bg-orange-500' : 'bg-green-500'
+                          }`}
                         style={{ width: `${topic.score}%` }}
                       />
                     </div>
@@ -389,7 +377,7 @@ export const StudentOverviewV3: React.FC = () => {
               </button>
             </div>
             <div className="space-y-3">
-              {mockUpcomingLectures.map((lecture) => (
+              {mockUpcomingLectures.map((lecture: any) => (
                 <div
                   key={lecture.id}
                   className="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer"

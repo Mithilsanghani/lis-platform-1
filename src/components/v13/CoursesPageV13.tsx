@@ -47,6 +47,7 @@ import { CourseCardV13, CourseCardSkeleton } from './CourseCardV13';
 import { AISuggestionBannerV13 } from './AISuggestionBannerV13';
 import { FilterChipsV13 } from './FilterChipsV13';
 import { BulkActionsBarV13 } from './BulkActionsBarV13';
+import { enhancedMockData, dataHelpers } from '../../data';
 
 // ===========================================
 // DRAWER WRAPPER - Universal Navigation Pattern
@@ -84,25 +85,25 @@ function Drawer({ isOpen, onClose, title, subtitle, icon, iconBgColor = 'bg-blue
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }} 
-      animate={{ opacity: 1 }} 
-      exit={{ opacity: 0 }} 
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex justify-end"
     >
       {/* Backdrop - Click to close */}
-      <motion.div 
-        onClick={onClose} 
+      <motion.div
+        onClick={onClose}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       />
-      
+
       {/* Drawer Panel - Slides from right */}
-      <motion.div 
-        initial={{ x: '100%' }} 
-        animate={{ x: 0 }} 
+      <motion.div
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
         exit={{ x: '100%' }}
         transition={{ type: 'spring', damping: 30, stiffness: 300 }}
         className={`relative w-full ${widthClasses[width]} bg-zinc-900 border-l border-zinc-800 shadow-2xl flex flex-col h-full`}
@@ -118,15 +119,15 @@ function Drawer({ isOpen, onClose, title, subtitle, icon, iconBgColor = 'bg-blue
               <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
               <span>Back to Courses</span>
             </button>
-            <button 
-              onClick={onClose} 
+            <button
+              onClick={onClose}
               className="p-2 rounded-lg hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
               aria-label="Close drawer"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
-          
+
           {/* Title Section */}
           <div className="p-5 bg-gradient-to-r from-blue-500/10 to-transparent">
             <div className="flex items-center gap-3">
@@ -164,16 +165,16 @@ interface CoursesPageV13Props {
 }
 
 // Stats card component - Enhanced
-function StatCard({ 
-  icon: Icon, 
-  label, 
-  value, 
-  change, 
-  color 
-}: { 
-  icon: React.ElementType; 
-  label: string; 
-  value: string | number; 
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  change,
+  color
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string | number;
   change?: { value: number; positive: boolean };
   color: string;
 }) {
@@ -188,7 +189,7 @@ function StatCard({
   const colors = colorClasses[color] || colorClasses.blue;
 
   return (
-    <motion.div 
+    <motion.div
       className={`relative flex items-center gap-3 px-4 py-4 rounded-xl ${colors.bg} border ${colors.border} overflow-hidden`}
       whileHover={{ scale: 1.02, y: -2 }}
       transition={{ type: 'spring', stiffness: 300 }}
@@ -279,7 +280,7 @@ export function CoursesPageV13({ professorId }: CoursesPageV13Props) {
 
   const handleExportCSV = async () => {
     setIsExporting(true);
-    
+
     // Build CSV content
     const headers = ['Course Code', 'Course Name', 'Department', 'Students', 'Health %', 'Silent Students', 'Active Today', 'Last Activity', 'Semester'];
     const rows = allCourses.map(course => [
@@ -293,15 +294,15 @@ export function CoursesPageV13({ professorId }: CoursesPageV13Props) {
       new Date(course.last_activity_at).toLocaleDateString(),
       course.semester
     ]);
-    
+
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.join(','))
     ].join('\n');
-    
+
     // Simulate processing delay
     await new Promise(resolve => setTimeout(resolve, 800));
-    
+
     // Create and download file
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -312,7 +313,7 @@ export function CoursesPageV13({ professorId }: CoursesPageV13Props) {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    
+
     setIsExporting(false);
     showToast(`Exported ${allCourses.length} courses to CSV!`, 'success');
   };
@@ -571,8 +572,8 @@ export function CoursesPageV13({ professorId }: CoursesPageV13Props) {
                     onClick={() => handleCategoryChange(key as CoursesFilters['category'])}
                     className={`
                       w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors
-                      ${filters.category === key 
-                        ? 'bg-blue-500/20 text-blue-300' 
+                      ${filters.category === key
+                        ? 'bg-blue-500/20 text-blue-300'
                         : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
                       }
                     `}
@@ -611,8 +612,8 @@ export function CoursesPageV13({ professorId }: CoursesPageV13Props) {
                     onClick={() => handleSortChange(key as CourseSort)}
                     className={`
                       w-full flex items-center gap-3 px-4 py-3 text-sm text-left transition-colors
-                      ${sort === key 
-                        ? 'bg-blue-500/20 text-blue-300' 
+                      ${sort === key
+                        ? 'bg-blue-500/20 text-blue-300'
                         : 'text-zinc-300 hover:bg-zinc-800 hover:text-white'
                       }
                     `}
@@ -781,8 +782,8 @@ export function CoursesPageV13({ professorId }: CoursesPageV13Props) {
               fixed bottom-6 right-6 z-50
               flex items-center gap-3 px-4 py-3 rounded-xl
               shadow-xl
-              ${toast.type === 'success' 
-                ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300' 
+              ${toast.type === 'success'
+                ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-300'
                 : 'bg-rose-500/20 border border-rose-500/40 text-rose-300'
               }
             `}
@@ -839,11 +840,11 @@ export function CoursesPageV13({ professorId }: CoursesPageV13Props) {
 }
 
 // Create Course Modal Component
-function CreateCourseModal({ 
-  onClose, 
-  onSuccess 
-}: { 
-  onClose: () => void; 
+function CreateCourseModal({
+  onClose,
+  onSuccess
+}: {
+  onClose: () => void;
   onSuccess: (name: string) => void;
 }) {
   const [formData, setFormData] = useState({
@@ -1218,11 +1219,11 @@ function CourseViewModal({ course, onClose }: { course: Course; onClose: () => v
             <span className="text-emerald-400 font-semibold">+12%</span>
           </div>
           <div className="mt-2 h-2 rounded-full bg-zinc-700 overflow-hidden">
-            <motion.div 
+            <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${course.health_pct}%` }}
               transition={{ duration: 0.8, ease: 'easeOut' }}
-              className="h-full bg-gradient-to-r from-blue-500 to-emerald-500" 
+              className="h-full bg-gradient-to-r from-blue-500 to-emerald-500"
             />
           </div>
         </div>
@@ -1250,12 +1251,16 @@ function CourseFeedbackModal({ course, onClose, onNudge }: { course: Course; onC
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
 
-  const mockFeedback = [
-    { id: 1, student: 'Rahul S.', rating: 4, comment: 'Great explanation of recursion concepts!', date: '2 hours ago', resolved: false },
-    { id: 2, student: 'Priya M.', rating: 5, comment: 'The examples were very helpful.', date: '5 hours ago', resolved: true },
-    { id: 3, student: 'Amit K.', rating: 3, comment: 'Could use more practice problems.', date: '1 day ago', resolved: false },
-    { id: 4, student: 'Sneha R.', rating: 4, comment: 'Clear and concise lecture.', date: '2 days ago', resolved: true },
-  ];
+
+  // Use enhancedMockData and dataHelpers
+  const mockFeedback = (enhancedMockData.feedback || []).slice(0, 4).map((fb, idx) => ({
+    id: fb.id || idx,
+    student: fb.studentName || 'Student',
+    rating: fb.rating || 4,
+    comment: fb.comment || 'No comment',
+    date: fb.date || 'recently',
+    resolved: fb.resolved || false,
+  }));
 
   const handleNudge = async () => {
     setNudging(true);
@@ -1285,10 +1290,10 @@ function CourseFeedbackModal({ course, onClose, onNudge }: { course: Course; onC
           <div className="flex items-center gap-4">
             <div className="text-sm text-zinc-400">Avg Rating: <span className="text-amber-400 font-semibold">4.0 ★</span></div>
             {course.silent_count > 0 && (
-              <motion.button 
+              <motion.button
                 onClick={handleNudge}
                 disabled={nudging}
-                className="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-400 font-medium text-sm flex items-center gap-2 disabled:opacity-50" 
+                className="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-400 font-medium text-sm flex items-center gap-2 disabled:opacity-50"
                 whileHover={{ scale: nudging ? 1 : 1.02 }}
               >
                 {nudging ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -1315,7 +1320,7 @@ function CourseFeedbackModal({ course, onClose, onNudge }: { course: Course; onC
               </div>
             </div>
             <p className="text-sm text-zinc-300 mb-3">{fb.comment}</p>
-            
+
             {/* Reply section */}
             {replyingTo === fb.id ? (
               <div className="mt-3 space-y-2">
@@ -1332,7 +1337,7 @@ function CourseFeedbackModal({ course, onClose, onNudge }: { course: Course; onC
                 </div>
               </div>
             ) : (
-              <motion.button 
+              <motion.button
                 onClick={() => setReplyingTo(fb.id)}
                 className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
                 whileHover={{ x: 2 }}
@@ -1350,13 +1355,14 @@ function CourseFeedbackModal({ course, onClose, onNudge }: { course: Course; onC
 
 // Course Students Drawer - DRAWER PATTERN
 function CourseStudentsModal({ course, onClose }: { course: Course; onClose: () => void }) {
-  const mockStudents = [
-    { id: 1, name: 'Rahul Sharma', email: 'rahul.s@uni.edu', status: 'active', lastActive: '10 min ago' },
-    { id: 2, name: 'Priya Patel', email: 'priya.p@uni.edu', status: 'active', lastActive: '2 hours ago' },
-    { id: 3, name: 'Amit Kumar', email: 'amit.k@uni.edu', status: 'silent', lastActive: '5 days ago' },
-    { id: 4, name: 'Sneha Reddy', email: 'sneha.r@uni.edu', status: 'active', lastActive: '1 hour ago' },
-    { id: 5, name: 'Vikram Joshi', email: 'vikram.j@uni.edu', status: 'silent', lastActive: '7 days ago' },
-  ];
+
+  const mockStudents = dataHelpers.getAllStudents().slice(0, 5).map((s, idx) => ({
+    id: s.id || idx,
+    name: s.full_name || 'Student',
+    email: s.email || '',
+    status: s.profile?.participation_level === 'low' ? 'silent' : 'active',
+    lastActive: s.dashboard?.lastActive || 'recently',
+  }));
 
   const [searchTerm, setSearchTerm] = useState('');
   const [nudging, setNudging] = useState(false);
@@ -1384,10 +1390,10 @@ function CourseStudentsModal({ course, onClose }: { course: Course; onClose: () 
       width="xl"
       footer={
         <div className="flex items-center justify-between">
-          <motion.button 
+          <motion.button
             onClick={handleNudgeSilent}
             disabled={nudging}
-            className="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-400 font-medium flex items-center gap-2 disabled:opacity-50" 
+            className="px-4 py-2 rounded-xl bg-amber-500/20 text-amber-400 font-medium flex items-center gap-2 disabled:opacity-50"
             whileHover={{ scale: nudging ? 1 : 1.02 }}
           >
             {nudging ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -1427,9 +1433,9 @@ function CourseStudentsModal({ course, onClose }: { course: Course; onClose: () 
                 {student.status}
               </span>
               <span className="text-xs text-zinc-500">{student.lastActive}</span>
-              <motion.button 
+              <motion.button
                 onClick={() => handleEmailStudent(student.id)}
-                whileHover={{ scale: 1.1 }} 
+                whileHover={{ scale: 1.1 }}
                 className="p-1.5 rounded-lg hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors"
               >
                 <Mail className="w-4 h-4" />
@@ -1447,7 +1453,7 @@ function CourseQRModal({ course, onClose, onCopy }: { course: Course; onClose: (
   const qrLink = `https://lis.edu/attend/${course.code.toLowerCase()}`;
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  
+
   const handleCopy = () => {
     navigator.clipboard.writeText(qrLink);
     setCopied(true);
@@ -1473,10 +1479,10 @@ function CourseQRModal({ course, onClose, onCopy }: { course: Course; onClose: (
       width="md"
       footer={
         <div className="flex justify-center gap-3">
-          <motion.button 
+          <motion.button
             onClick={handleDownload}
             disabled={downloading}
-            className="px-5 py-2.5 rounded-xl bg-zinc-800 text-zinc-300 font-medium flex items-center gap-2 hover:bg-zinc-700 disabled:opacity-50" 
+            className="px-5 py-2.5 rounded-xl bg-zinc-800 text-zinc-300 font-medium flex items-center gap-2 hover:bg-zinc-700 disabled:opacity-50"
             whileHover={{ scale: downloading ? 1 : 1.02 }}
           >
             {downloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
@@ -1500,10 +1506,10 @@ function CourseQRModal({ course, onClose, onCopy }: { course: Course; onClose: (
         {/* Link */}
         <div className="flex items-center gap-2 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700">
           <input type="text" value={qrLink} readOnly className="flex-1 bg-transparent text-sm text-zinc-300 outline-none" />
-          <motion.button 
-            onClick={handleCopy} 
+          <motion.button
+            onClick={handleCopy}
             className={`p-2 rounded-lg transition-colors ${copied ? 'bg-emerald-500/20 text-emerald-400' : 'hover:bg-zinc-700 text-zinc-400 hover:text-white'}`}
-            whileHover={{ scale: 1.05 }} 
+            whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >
             {copied ? <CheckCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}

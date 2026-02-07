@@ -25,6 +25,7 @@ import {
   AlertTriangle,
   X,
 } from 'lucide-react';
+import { dataHelpers } from '../../data';
 
 // ================== Types ==================
 
@@ -401,10 +402,10 @@ export const StudentLayoutV3: React.FC<StudentLayoutV3Props> = ({ children }) =>
 
   const sidebarWidth = isCollapsed ? 80 : 260;
 
-  // Mock data - in real app, this comes from API/store
+  const student = dataHelpers.getAllStudents()[0];
   const mockStudentData = {
-    name: 'Alex Johnson',
-    email: 'alex.johnson@university.edu',
+    name: student?.full_name || 'Student',
+    email: student?.email || 'student@iitgn.ac.in',
     weeklyProgress: 78,
     feedbackStreak: 12,
     pendingFeedback: 2,
@@ -547,7 +548,7 @@ export const StudentLayoutV3: React.FC<StudentLayoutV3Props> = ({ children }) =>
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              
+
               {/* Stats */}
               <div className="p-6 grid grid-cols-3 gap-4">
                 <div className="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-center">

@@ -1,6 +1,5 @@
 {
   "hosting": {
-    "site": "lis-platform",
     "public": "dist",
     "ignore": [
       "firebase.json",

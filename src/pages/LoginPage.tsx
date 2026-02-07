@@ -105,17 +105,59 @@ export default function LoginPage() {
     const store = useLISStore.getState();
     let userId: string;
     if (demoRole === 'professor') {
-      userId = store.registerProfessor({ name: 'Dr. Demo Professor', email: 'demo-professor@iitgn.ac.in', department: 'Computer Science' });
+      // First, seed all professors if they don't exist
+      const professorIds = store.seedProfessors();
+
+      // Use the first professor (Dr. Rajesh Kumar from enhanced data)
+      userId = professorIds[0];
+      const professor = store.professors.find(p => p.id === userId);
+
+      if (professor) {
+        setUser({
+          id: userId,
+          email: professor.email,
+          name: professor.name,
+          role: demoRole,
+        });
+      }
     } else {
-      userId = store.registerStudent({ name: 'Demo Student', email: 'demo-student@iitgn.ac.in', rollNumber: 'DEMO001', department: 'Computer Science' });
+      // For student demo, we need to:
+      // 1. Seed professors first
+      const professorIds = store.seedProfessors();
+      const demoProfessorId = professorIds[0];
+
+      // 2. Seed demo data (courses, students, etc.) for that professor
+      // This returns the IDs of the students it created
+      const createdStudentIds = store.seedDemoData(demoProfessorId);
+
+      // 3. Get the first student from the NEWLY CREATED students
+      const demoStudent = store.students.find(s => s.id === createdStudentIds[0]);
+
+      if (demoStudent) {
+        userId = demoStudent.id;
+        setUser({
+          id: userId,
+          email: demoStudent.email,
+          name: demoStudent.name,
+          role: demoRole,
+        });
+      } else {
+        // Fallback: create a basic student if seeding failed
+        userId = store.registerStudent({
+          name: 'Demo Student',
+          email: 'demo-student@iitgn.ac.in',
+          rollNumber: 'DEMO001',
+          department: 'Computer Science'
+        });
+        setUser({
+          id: userId,
+          email: 'demo-student@iitgn.ac.in',
+          name: 'Demo Student',
+          role: demoRole,
+        });
+      }
     }
 
-    setUser({
-      id: userId,
-      email: demoRole === 'professor' ? 'demo-professor@iitgn.ac.in' : 'demo-student@iitgn.ac.in',
-      name: demoRole === 'professor' ? 'Dr. Demo Professor' : 'Demo Student',
-      role: demoRole,
-    });
     localStorage.setItem('demo_role', demoRole);
     window.dispatchEvent(new Event('storage'));
     setTimeout(() => navigate(demoRole === 'professor' ? '/professor' : '/dev/student'), 50);

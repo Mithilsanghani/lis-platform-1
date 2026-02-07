@@ -4,13 +4,9 @@
  * Same functions work for both roles - just different data
  */
 
+
 import type {
-  User,
   UserRole,
-  Course,
-  Lecture,
-  LectureTopic,
-  Feedback,
   DashboardMetrics,
   PendingFeedbackItem,
   AIInsight,
@@ -18,141 +14,22 @@ import type {
   RevisionFlag,
   UnderstandingLevel,
 } from './types';
+import { enhancedMockData } from '../data';
+import * as dataHelpers from '../data/dataHelpers';
 
-// ==================== MOCK DATABASE ====================
 
-const MOCK_USERS: User[] = [
-  {
-    id: 'student-1',
-    email: 'alex.johnson@university.edu',
-    name: 'Alex Johnson',
-    role: 'student',
-    department: 'Computer Science',
-    rollNo: 'CS2024001',
-  },
-  {
-    id: 'prof-1',
-    email: 'prof.sharma@university.edu',
-    name: 'Dr. Sharma',
-    role: 'professor',
-    department: 'Computer Science',
-  },
-];
+// ==================== MOCK DATABASE (ENHANCED) ====================
+const MOCK_USERS = [...enhancedMockData.professors, ...enhancedMockData.students];
+const MOCK_COURSES = enhancedMockData.courses;
+const MOCK_LECTURES = enhancedMockData.lectures || [];
+const MOCK_FEEDBACKS = enhancedMockData.feedback || [];
 
-const MOCK_COURSES: Course[] = [
-  {
-    id: 'course-1',
-    code: 'CS301',
-    name: 'Data Structures & Algorithms',
-    professorId: 'prof-1',
-    professorName: 'Dr. Sharma',
-    semester: 'Fall 2025',
-    isActive: true,
-    enrolledCount: 45,
-    createdAt: '2025-08-01',
-  },
-  {
-    id: 'course-2',
-    code: 'CS302',
-    name: 'Database Management Systems',
-    professorId: 'prof-1',
-    professorName: 'Dr. Sharma',
-    semester: 'Fall 2025',
-    isActive: true,
-    enrolledCount: 38,
-    createdAt: '2025-08-01',
-  },
-  {
-    id: 'course-3',
-    code: 'CS303',
-    name: 'Operating Systems',
-    professorId: 'prof-1',
-    professorName: 'Dr. Sharma',
-    semester: 'Fall 2025',
-    isActive: true,
-    enrolledCount: 42,
-    createdAt: '2025-08-01',
-  },
-];
-
-const MOCK_LECTURES: Lecture[] = [
-  {
-    id: 'lec-1',
-    courseId: 'course-1',
-    courseName: 'Data Structures & Algorithms',
-    courseCode: 'CS301',
-    title: 'Binary Trees & Traversals',
-    date: '2026-02-02',
-    startTime: '10:00',
-    endTime: '11:30',
-    feedbackDeadline: '2026-02-02T18:00:00',
-    status: 'completed',
-    topics: [
-      { id: 'topic-1', lectureId: 'lec-1', name: 'Binary Tree Basics', order: 1 },
-      { id: 'topic-2', lectureId: 'lec-1', name: 'Inorder Traversal', order: 2 },
-      { id: 'topic-3', lectureId: 'lec-1', name: 'Preorder Traversal', order: 3 },
-      { id: 'topic-4', lectureId: 'lec-1', name: 'Level Order Traversal', order: 4 },
-    ],
-  },
-  {
-    id: 'lec-2',
-    courseId: 'course-2',
-    courseName: 'Database Management Systems',
-    courseCode: 'CS302',
-    title: 'SQL Joins & Subqueries',
-    date: '2026-02-01',
-    startTime: '14:00',
-    endTime: '15:30',
-    feedbackDeadline: '2026-02-02T14:00:00',
-    status: 'completed',
-    topics: [
-      { id: 'topic-5', lectureId: 'lec-2', name: 'Inner Joins', order: 1 },
-      { id: 'topic-6', lectureId: 'lec-2', name: 'Outer Joins', order: 2 },
-      { id: 'topic-7', lectureId: 'lec-2', name: 'Correlated Subqueries', order: 3 },
-    ],
-  },
-  {
-    id: 'lec-3',
-    courseId: 'course-1',
-    courseName: 'Data Structures & Algorithms',
-    courseCode: 'CS301',
-    title: 'Graph Algorithms',
-    date: '2026-01-30',
-    startTime: '10:00',
-    endTime: '11:30',
-    feedbackDeadline: '2026-01-30T18:00:00',
-    status: 'completed',
-    topics: [
-      { id: 'topic-8', lectureId: 'lec-3', name: 'BFS Algorithm', order: 1 },
-      { id: 'topic-9', lectureId: 'lec-3', name: 'DFS Algorithm', order: 2 },
-      { id: 'topic-10', lectureId: 'lec-3', name: 'Shortest Path', order: 3 },
-    ],
-  },
-];
-
-// Feedbacks already submitted by student-1
-const MOCK_FEEDBACKS: Feedback[] = [
-  {
-    id: 'fb-1',
-    lectureId: 'lec-3',
-    studentId: 'student-1',
-    submittedAt: '2026-01-30T17:30:00',
-    topicFeedbacks: [
-      { topicId: 'topic-8', topicName: 'BFS Algorithm', understanding: 'understood' },
-      { topicId: 'topic-9', topicName: 'DFS Algorithm', understanding: 'partial', comment: 'Need more examples' },
-      { topicId: 'topic-10', topicName: 'Shortest Path', understanding: 'understood' },
-    ],
-    pace: 'good',
-    engagementScore: 4,
-  },
-];
 
 // Track which lectures student has NOT submitted feedback for
 const getStudentPendingFeedbacks = (studentId: string): string[] => {
   const submittedLectureIds = MOCK_FEEDBACKS
     .filter(f => f.studentId === studentId)
     .map(f => f.lectureId);
-  
   // Lectures that need feedback (completed, enrolled, not submitted)
   return MOCK_LECTURES
     .filter(l => l.status === 'completed' && !submittedLectureIds.includes(l.id))
@@ -163,21 +40,24 @@ const getStudentPendingFeedbacks = (studentId: string): string[] => {
 
 export const DataService = {
   // Get current user (mock - would come from auth)
-  getCurrentUser: (role: UserRole = 'student'): User => {
+
+  getCurrentUser: (role: UserRole = 'student') => {
     return MOCK_USERS.find(u => u.role === role) || MOCK_USERS[0];
   },
 
   // Get courses based on role
-  getCourses: (userId: string, role: UserRole): Course[] => {
+
+  getCourses: (userId: string, role: UserRole) => {
     if (role === 'professor') {
-      return MOCK_COURSES.filter(c => c.professorId === userId);
+      return MOCK_COURSES.filter(c => c.created_by === userId || c.professorId === userId);
     }
     // For students, return enrolled courses (mock: all courses)
     return MOCK_COURSES;
   },
 
   // Get lectures for a course
-  getLectures: (courseId?: string): Lecture[] => {
+
+  getLectures: (courseId?: string) => {
     if (courseId) {
       return MOCK_LECTURES.filter(l => l.courseId === courseId);
     }
@@ -384,112 +264,32 @@ export const DataService = {
 
 // ==================== HELPER FUNCTIONS ====================
 
+
+// Use enhancedMockData and dataHelpers for metrics
 function getStudentMetrics(studentId: string): DashboardMetrics {
-  const pendingIds = getStudentPendingFeedbacks(studentId);
-  const submittedFeedbacks = MOCK_FEEDBACKS.filter(f => f.studentId === studentId);
-  
-  // Calculate understanding score from feedback
-  let totalScore = 0;
-  let totalTopics = 0;
-  submittedFeedbacks.forEach(f => {
-    f.topicFeedbacks.forEach(tf => {
-      totalTopics++;
-      if (tf.understanding === 'understood') totalScore += 100;
-      else if (tf.understanding === 'partial') totalScore += 60;
-      else totalScore += 30;
-    });
-  });
-  const avgScore = totalTopics > 0 ? Math.round(totalScore / totalTopics) : 0;
-
-  // Weekly progress = (feedbacks submitted + understood topics) / total lectures this week
-  const lecturesThisWeek = 5; // Mock
-  const feedbacksThisWeek = submittedFeedbacks.length;
-  const understoodTopics = submittedFeedbacks.reduce((acc, f) => 
-    acc + f.topicFeedbacks.filter(tf => tf.understanding === 'understood').length, 0);
-  const weeklyProgress = Math.round(((feedbacksThisWeek + understoodTopics) / (lecturesThisWeek * 3)) * 100);
-
-  return {
-    weeklyProgress: {
-      percentage: Math.min(weeklyProgress, 100),
-      feedbacksSubmitted: feedbacksThisWeek,
-      lecturesUnderstood: understoodTopics,
-      totalLectures: lecturesThisWeek,
-      trend: 'up',
-      trendValue: 12,
-    },
-    pendingFeedbacks: {
-      count: pendingIds.length,
-      items: DataService.getPendingFeedbacks(studentId, 'student'),
-    },
-    activeCourses: {
-      count: MOCK_COURSES.length,
-      courses: MOCK_COURSES,
-    },
-    feedbackStats: {
-      submitted: submittedFeedbacks.length,
-      thisWeek: submittedFeedbacks.length,
-      thisSemester: 12, // Mock
-    },
-    streak: {
-      days: 12,
-      isActive: true,
-      lastActivity: new Date().toISOString(),
-    },
-    averageScore: {
-      percentage: avgScore || 82,
-      trend: 'up',
-      trendValue: 5,
-      breakdown: {
-        understood: 65,
-        partial: 25,
-        notClear: 10,
-      },
-    },
+  // You can further enhance this to use dataHelpers.getStudentById etc.
+  const student = dataHelpers.getStudentById(studentId);
+  const dashboard = student?.dashboard;
+  return dashboard?.metrics || {
+    weeklyProgress: { percentage: 0, feedbacksSubmitted: 0, lecturesUnderstood: 0, totalLectures: 0, trend: 'up', trendValue: 0 },
+    pendingFeedbacks: { count: 0, items: [] },
+    activeCourses: { count: 0, courses: [] },
+    feedbackStats: { submitted: 0, thisWeek: 0, thisSemester: 0 },
+    streak: { days: 0, isActive: false, lastActivity: '' },
+    averageScore: { percentage: 0, trend: 'up', trendValue: 0, breakdown: { understood: 0, partial: 0, notClear: 0 } },
   };
 }
 
 function getProfessorMetrics(professorId: string): DashboardMetrics {
-  const courses = MOCK_COURSES.filter(c => c.professorId === professorId);
-  const totalStudents = courses.reduce((acc, c) => acc + c.enrolledCount, 0);
-  
-  // Class-level metrics
-  return {
-    weeklyProgress: {
-      percentage: 73,
-      feedbacksSubmitted: 156,
-      lecturesUnderstood: 420,
-      totalLectures: 15,
-      trend: 'up',
-      trendValue: 8,
-    },
-    pendingFeedbacks: {
-      count: 3,
-      items: DataService.getPendingFeedbacks(professorId, 'professor'),
-    },
-    activeCourses: {
-      count: courses.length,
-      courses,
-    },
-    feedbackStats: {
-      submitted: 892,
-      thisWeek: 156,
-      thisSemester: 892,
-    },
-    streak: {
-      days: 8,
-      isActive: true,
-      lastActivity: new Date().toISOString(),
-    },
-    averageScore: {
-      percentage: 71,
-      trend: 'up',
-      trendValue: 3,
-      breakdown: {
-        understood: 58,
-        partial: 28,
-        notClear: 14,
-      },
-    },
+  const professor = dataHelpers.getProfessorById(professorId);
+  const dashboard = professor?.dashboard;
+  return dashboard?.metrics || {
+    weeklyProgress: { percentage: 0, feedbacksSubmitted: 0, lecturesUnderstood: 0, totalLectures: 0, trend: 'up', trendValue: 0 },
+    pendingFeedbacks: { count: 0, items: [] },
+    activeCourses: { count: 0, courses: [] },
+    feedbackStats: { submitted: 0, thisWeek: 0, thisSemester: 0 },
+    streak: { days: 0, isActive: false, lastActivity: '' },
+    averageScore: { percentage: 0, trend: 'up', trendValue: 0, breakdown: { understood: 0, partial: 0, notClear: 0 } },
   };
 }
 

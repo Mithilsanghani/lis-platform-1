@@ -6,6 +6,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { enhancedProfessors, enhancedStudents } from '../data/enhancedMockData';
 
 // ============================================
 // TYPES - Core Data Model
@@ -186,17 +187,17 @@ interface LISState {
   // ============================================
   // PROFESSOR ACTIONS
   // ============================================
-  
+
   // Course Management
   createCourse: (professorId: string, data: Omit<Course, 'id' | 'enrollmentCode' | 'students' | 'lectures' | 'assessments' | 'createdAt'>) => string;
   updateCourse: (courseId: string, updates: Partial<Course>) => void;
   deleteCourse: (courseId: string) => void;
-  
+
   // Student Management
   enrollStudent: (courseId: string, studentData: Omit<Student, 'id' | 'enrolledCourses' | 'createdAt' | 'lastActiveAt'>) => string;
   bulkEnrollStudents: (courseId: string, students: Omit<Student, 'id' | 'enrolledCourses' | 'createdAt' | 'lastActiveAt'>[]) => string[];
   removeStudent: (courseId: string, studentId: string) => void;
-  
+
   // Lecture Management
   createLecture: (courseId: string, data: Omit<Lecture, 'id' | 'courseId' | 'attendees' | 'createdAt'>) => string;
   updateLecture: (lectureId: string, updates: Partial<Lecture>) => void;
@@ -204,7 +205,7 @@ interface LISState {
   startLecture: (lectureId: string) => void;
   endLecture: (lectureId: string) => void;
   markAttendance: (lectureId: string, studentId: string) => void;
-  
+
   // Assessment & Grades
   createAssessment: (courseId: string, data: Omit<Assessment, 'id' | 'courseId' | 'createdAt'>) => string;
   updateAssessment: (assessmentId: string, updates: Partial<Assessment>) => void;
@@ -212,33 +213,33 @@ interface LISState {
   setGrade: (assessmentId: string, studentId: string, marks: number, comments?: string) => void;
   publishGrades: (assessmentId: string) => void;
   unpublishGrades: (assessmentId: string) => void;
-  
+
   // Delete student entirely (cascade all data)
   deleteStudent: (studentId: string) => void;
-  
+
   // Nudge
   sendNudge: (studentId: string, message: string, professorId: string) => void;
 
   // ============================================
   // STUDENT ACTIONS
   // ============================================
-  
+
   submitFeedback: (lectureId: string, studentId: string, data: Omit<Feedback, 'id' | 'lectureId' | 'studentId' | 'courseId' | 'timestamp'>) => string;
   updateStudentActivity: (studentId: string) => void;
-  
+
   // Student self-enrollment by code
   enrollByCode: (studentId: string, enrollmentCode: string) => { success: boolean; courseId?: string; error?: string };
-  
+
   // Register a new student in the system (used at sign-up)
   registerStudent: (data: Omit<Student, 'id' | 'enrolledCourses' | 'createdAt' | 'lastActiveAt'>) => string;
-  
+
   // Register a new professor in the system (used at sign-up)
   registerProfessor: (data: Omit<Professor, 'id' | 'coursesOwned' | 'createdAt'>) => string;
-  
+
   // ============================================
   // GETTERS - Computed from real data only
   // ============================================
-  
+
   // Professor Getters
   getCourse: (courseId: string) => Course | undefined;
   getProfessorCourses: (professorId: string) => Course[];
@@ -249,38 +250,41 @@ interface LISState {
   getCourseLectures: (courseId: string) => Lecture[];
   getCourseAssessments: (courseId: string) => Assessment[];
   getCourseFeedback: (courseId: string) => Feedback[];
-  
+
   // Metrics - ALWAYS computed from real data
   getActiveStudents: (courseId: string, hoursAgo?: number) => Student[];
   getSilentStudents: (courseId: string, daysInactive?: number) => Student[];
   getCourseEngagement: (courseId: string) => number; // percentage
   getCourseHealth: (courseId: string) => number; // percentage
   getAtRiskStudents: (courseId: string) => Student[];
-  
+
   // AI Data Sources - Must have real data to work
   getAIDataAvailability: (courseId: string) => { hasFeedback: boolean; hasGrades: boolean; hasAttendance: boolean; totalDataPoints: number; isReady: boolean };
-  
+
   // Student Getters
   getStudentCourses: (studentId: string) => Course[];
   getStudentPublishedGrades: (studentId: string) => { course: Course; assessment: Assessment; grade: Grade }[];
   calculateStudentGPA: (studentId: string) => number;
   getStudentLectures: (studentId: string) => Lecture[];
   getStudentPendingFeedback: (studentId: string) => Lecture[];
-  
+
   // Settings
   getUserSettings: (userId: string) => UserSettings;
   updateUserSettings: (userId: string, updates: Partial<UserSettings>) => void;
-  
+
   // Notifications
   getUserNotifications: (userId: string) => Notification[];
   markNotificationRead: (notificationId: string) => void;
   clearAllNotifications: (userId: string) => void;
-  
+
   // Reset (for testing)
   resetStore: () => void;
-  
+
   // Seed demo data for testing
-  seedDemoData: (professorId: string) => void;
+  seedDemoData: (professorId: string) => string[]; // Returns created student IDs
+
+  // Seed professors from enhanced mock data
+  seedProfessors: () => string[];
 }
 
 // Default settings
@@ -327,7 +331,7 @@ export const useLISStore = create<LISState>()(
       // ============================================
       // PROFESSOR ACTIONS
       // ============================================
-      
+
       createCourse: (professorId, data) => {
         const id = generateId();
         const enrollmentCode = generateEnrollmentCode();
@@ -341,17 +345,17 @@ export const useLISStore = create<LISState>()(
           assessments: [],
           createdAt: new Date().toISOString(),
         };
-        
+
         set((state) => ({
           courses: [...state.courses, course],
           professors: state.professors.map((p) =>
             p.id === professorId ? { ...p, coursesOwned: [...p.coursesOwned, id] } : p
           ),
         }));
-        
+
         return id;
       },
-      
+
       updateCourse: (courseId, updates) => {
         set((state) => ({
           courses: state.courses.map((c) =>
@@ -359,7 +363,7 @@ export const useLISStore = create<LISState>()(
           ),
         }));
       },
-      
+
       deleteCourse: (courseId) => {
         set((state) => ({
           courses: state.courses.filter((c) => c.id !== courseId),
@@ -369,10 +373,10 @@ export const useLISStore = create<LISState>()(
           grades: state.grades.filter((g) => g.courseId !== courseId),
         }));
       },
-      
+
       enrollStudent: (courseId, studentData) => {
         const existingStudent = get().students.find((s) => s.email === studentData.email);
-        
+
         if (existingStudent) {
           // Student exists, just enroll in course
           set((state) => ({
@@ -389,7 +393,7 @@ export const useLISStore = create<LISState>()(
           }));
           return existingStudent.id;
         }
-        
+
         // Create new student
         const id = generateId();
         const student: Student = {
@@ -399,17 +403,17 @@ export const useLISStore = create<LISState>()(
           createdAt: new Date().toISOString(),
           lastActiveAt: new Date().toISOString(),
         };
-        
+
         set((state) => ({
           students: [...state.students, student],
           courses: state.courses.map((c) =>
             c.id === courseId ? { ...c, students: [...c.students, id] } : c
           ),
         }));
-        
+
         return id;
       },
-      
+
       bulkEnrollStudents: (courseId, studentsData) => {
         const ids: string[] = [];
         studentsData.forEach((studentData) => {
@@ -418,7 +422,7 @@ export const useLISStore = create<LISState>()(
         });
         return ids;
       },
-      
+
       removeStudent: (courseId, studentId) => {
         set((state) => ({
           students: state.students.map((s) =>
@@ -433,7 +437,7 @@ export const useLISStore = create<LISState>()(
           ),
         }));
       },
-      
+
       deleteStudent: (studentId) => {
         // Cascade: remove from all courses, delete their feedback, grades, notifications
         set((state) => ({
@@ -447,7 +451,7 @@ export const useLISStore = create<LISState>()(
           notifications: state.notifications.filter((n) => n.userId !== studentId),
         }));
       },
-      
+
       createLecture: (courseId, data) => {
         const id = generateId();
         const lecture: Lecture = {
@@ -457,17 +461,17 @@ export const useLISStore = create<LISState>()(
           attendees: [],
           createdAt: new Date().toISOString(),
         };
-        
+
         set((state) => ({
           lectures: [...state.lectures, lecture],
           courses: state.courses.map((c) =>
             c.id === courseId ? { ...c, lectures: [...c.lectures, id] } : c
           ),
         }));
-        
+
         return id;
       },
-      
+
       updateLecture: (lectureId, updates) => {
         set((state) => ({
           lectures: state.lectures.map((l) =>
@@ -475,11 +479,11 @@ export const useLISStore = create<LISState>()(
           ),
         }));
       },
-      
+
       deleteLecture: (lectureId) => {
         const lecture = get().lectures.find((l) => l.id === lectureId);
         if (!lecture) return;
-        
+
         set((state) => ({
           lectures: state.lectures.filter((l) => l.id !== lectureId),
           feedback: state.feedback.filter((f) => f.lectureId !== lectureId),
@@ -490,15 +494,15 @@ export const useLISStore = create<LISState>()(
           ),
         }));
       },
-      
+
       startLecture: (lectureId) => {
         get().updateLecture(lectureId, { status: 'live' });
       },
-      
+
       endLecture: (lectureId) => {
         get().updateLecture(lectureId, { status: 'completed' });
       },
-      
+
       markAttendance: (lectureId, studentId) => {
         set((state) => ({
           lectures: state.lectures.map((l) =>
@@ -509,7 +513,7 @@ export const useLISStore = create<LISState>()(
         }));
         get().updateStudentActivity(studentId);
       },
-      
+
       createAssessment: (courseId, data) => {
         const id = generateId();
         const assessment: Assessment = {
@@ -518,17 +522,17 @@ export const useLISStore = create<LISState>()(
           courseId,
           createdAt: new Date().toISOString(),
         };
-        
+
         set((state) => ({
           assessments: [...state.assessments, assessment],
           courses: state.courses.map((c) =>
             c.id === courseId ? { ...c, assessments: [...c.assessments, id] } : c
           ),
         }));
-        
+
         return id;
       },
-      
+
       updateAssessment: (assessmentId, updates) => {
         set((state) => ({
           assessments: state.assessments.map((a) =>
@@ -536,11 +540,11 @@ export const useLISStore = create<LISState>()(
           ),
         }));
       },
-      
+
       deleteAssessment: (assessmentId) => {
         const assessment = get().assessments.find((a) => a.id === assessmentId);
         if (!assessment) return;
-        
+
         set((state) => ({
           assessments: state.assessments.filter((a) => a.id !== assessmentId),
           grades: state.grades.filter((g) => g.assessmentId !== assessmentId),
@@ -551,15 +555,15 @@ export const useLISStore = create<LISState>()(
           ),
         }));
       },
-      
+
       setGrade: (assessmentId, studentId, marks, comments) => {
         const assessment = get().assessments.find((a) => a.id === assessmentId);
         if (!assessment) return;
-        
+
         const existingGrade = get().grades.find(
           (g) => g.assessmentId === assessmentId && g.studentId === studentId
         );
-        
+
         if (existingGrade) {
           set((state) => ({
             grades: state.grades.map((g) =>
@@ -578,23 +582,23 @@ export const useLISStore = create<LISState>()(
             gradedAt: new Date().toISOString(),
             comments,
           };
-          
+
           set((state) => ({
             grades: [...state.grades, grade],
           }));
         }
       },
-      
+
       publishGrades: (assessmentId) => {
         get().updateAssessment(assessmentId, { status: 'published' });
-        
+
         // Send notifications to students
         const assessment = get().assessments.find((a) => a.id === assessmentId);
         if (!assessment) return;
-        
+
         const course = get().courses.find((c) => c.id === assessment.courseId);
         if (!course) return;
-        
+
         const grades = get().grades.filter((g) => g.assessmentId === assessmentId);
         grades.forEach((grade) => {
           const notification: Notification = {
@@ -606,17 +610,17 @@ export const useLISStore = create<LISState>()(
             read: false,
             createdAt: new Date().toISOString(),
           };
-          
+
           set((state) => ({
             notifications: [...state.notifications, notification],
           }));
         });
       },
-      
+
       unpublishGrades: (assessmentId) => {
         get().updateAssessment(assessmentId, { status: 'draft' });
       },
-      
+
       sendNudge: (studentId, message, professorId) => {
         const notification: Notification = {
           id: generateId(),
@@ -627,7 +631,7 @@ export const useLISStore = create<LISState>()(
           read: false,
           createdAt: new Date().toISOString(),
         };
-        
+
         set((state) => ({
           notifications: [...state.notifications, notification],
         }));
@@ -636,11 +640,11 @@ export const useLISStore = create<LISState>()(
       // ============================================
       // STUDENT ACTIONS
       // ============================================
-      
+
       submitFeedback: (lectureId, studentId, data) => {
         const lecture = get().lectures.find((l) => l.id === lectureId);
         if (!lecture) return '';
-        
+
         const id = generateId();
         const feedback: Feedback = {
           ...data,
@@ -650,15 +654,15 @@ export const useLISStore = create<LISState>()(
           courseId: lecture.courseId,
           timestamp: new Date().toISOString(),
         };
-        
+
         set((state) => ({
           feedback: [...state.feedback, feedback],
         }));
-        
+
         get().updateStudentActivity(studentId);
         return id;
       },
-      
+
       updateStudentActivity: (studentId) => {
         set((state) => ({
           students: state.students.map((s) =>
@@ -670,12 +674,12 @@ export const useLISStore = create<LISState>()(
       enrollByCode: (studentId, enrollmentCode) => {
         const course = get().courses.find((c) => c.enrollmentCode === enrollmentCode);
         if (!course) return { success: false, error: 'Invalid enrollment code' };
-        
+
         // Check if already enrolled
         if (course.students.includes(studentId)) {
           return { success: false, error: 'Already enrolled in this course' };
         }
-        
+
         set((state) => ({
           students: state.students.map((s) =>
             s.id === studentId
@@ -688,7 +692,7 @@ export const useLISStore = create<LISState>()(
               : c
           ),
         }));
-        
+
         return { success: true, courseId: course.id };
       },
 
@@ -696,7 +700,7 @@ export const useLISStore = create<LISState>()(
         // Check if student with same email exists
         const existing = get().students.find((s) => s.email === data.email);
         if (existing) return existing.id;
-        
+
         const id = generateId();
         const student: Student = {
           ...data,
@@ -705,7 +709,7 @@ export const useLISStore = create<LISState>()(
           createdAt: new Date().toISOString(),
           lastActiveAt: new Date().toISOString(),
         };
-        
+
         set((state) => ({ students: [...state.students, student] }));
         return id;
       },
@@ -713,7 +717,7 @@ export const useLISStore = create<LISState>()(
       registerProfessor: (data) => {
         const existing = get().professors.find((p) => p.email === data.email);
         if (existing) return existing.id;
-        
+
         const id = generateId();
         const professor: Professor = {
           ...data,
@@ -721,7 +725,7 @@ export const useLISStore = create<LISState>()(
           coursesOwned: [],
           createdAt: new Date().toISOString(),
         };
-        
+
         set((state) => ({ professors: [...state.professors, professor] }));
         return id;
       },
@@ -729,7 +733,7 @@ export const useLISStore = create<LISState>()(
       // ============================================
       // GETTERS
       // ============================================
-      
+
       getCourse: (courseId) => {
         return get().courses.find((c) => c.id === courseId);
       },
@@ -753,79 +757,79 @@ export const useLISStore = create<LISState>()(
           get().setGrade(assessmentId, studentId, marks, comments);
         });
       },
-      
+
       getCourseStudents: (courseId) => {
         const course = get().courses.find((c) => c.id === courseId);
         if (!course) return [];
         return get().students.filter((s) => course.students.includes(s.id));
       },
-      
+
       getCourseLectures: (courseId) => {
         return get().lectures.filter((l) => l.courseId === courseId);
       },
-      
+
       getCourseAssessments: (courseId) => {
         return get().assessments.filter((a) => a.courseId === courseId);
       },
-      
+
       getCourseFeedback: (courseId) => {
         return get().feedback.filter((f) => f.courseId === courseId);
       },
-      
+
       getActiveStudents: (courseId, hoursAgo = 24) => {
         const cutoff = new Date(Date.now() - hoursAgo * 60 * 60 * 1000).toISOString();
         const course = get().courses.find((c) => c.id === courseId);
         if (!course) return [];
-        
+
         return get().students.filter(
           (s) => course.students.includes(s.id) && s.lastActiveAt >= cutoff
         );
       },
-      
+
       getSilentStudents: (courseId, daysInactive = 7) => {
         const cutoff = new Date(Date.now() - daysInactive * 24 * 60 * 60 * 1000).toISOString();
         const course = get().courses.find((c) => c.id === courseId);
         if (!course) return [];
-        
+
         return get().students.filter(
           (s) => course.students.includes(s.id) && s.lastActiveAt < cutoff
         );
       },
-      
+
       getCourseEngagement: (courseId) => {
         const course = get().courses.find((c) => c.id === courseId);
         if (!course || course.students.length === 0) return 0;
-        
+
         const lectures = get().lectures.filter((l) => l.courseId === courseId && l.status === 'completed');
         if (lectures.length === 0) return 0;
-        
+
         const feedbackCount = get().feedback.filter((f) => f.courseId === courseId).length;
         const expectedFeedback = lectures.length * course.students.length;
-        
+
         return expectedFeedback > 0 ? Math.round((feedbackCount / expectedFeedback) * 100) : 0;
       },
-      
+
       getCourseHealth: (courseId) => {
         const engagement = get().getCourseEngagement(courseId);
         const course = get().courses.find((c) => c.id === courseId);
         if (!course || course.students.length === 0) return 0;
-        
+
         const silentStudents = get().getSilentStudents(courseId);
         const silentRatio = silentStudents.length / course.students.length;
-        
+
         // Health = (engagement * 0.6) + ((1 - silentRatio) * 40)
         return Math.round(engagement * 0.6 + (1 - silentRatio) * 40);
       },
-      
+
       getAtRiskStudents: (courseId) => {
         const course = get().courses.find((c) => c.id === courseId);
         if (!course) return [];
-        
+
         const silentStudents = get().getSilentStudents(courseId, 5);
         const publishedAssessments = get().assessments.filter(
           (a) => a.courseId === courseId && a.status === 'published'
         );
-        
+
         // Students with low grades
         const lowGradeStudents = course.students.filter((studentId) => {
           const studentGrades = get().grades.filter(
@@ -834,29 +838,29 @@ export const useLISStore = create<LISState>()(
               g.studentId === studentId &&
               publishedAssessments.some((a) => a.id === g.assessmentId)
           );
-          
+
           if (studentGrades.length === 0) return false;
-          
+
           const avgPercentage = studentGrades.reduce((sum, g) => {
             const assessment = publishedAssessments.find((a) => a.id === g.assessmentId);
             return sum + ((g.marksObtained ?? 0) / (assessment?.maxMarks ?? 100)) * 100;
           }, 0) / studentGrades.length;
-          
+
           return avgPercentage < 50;
         });
-        
+
         const atRiskIds = [...new Set([...silentStudents.map((s) => s.id), ...lowGradeStudents])];
         return get().students.filter((s) => atRiskIds.includes(s.id));
       },
-      
+
       getAIDataAvailability: (courseId) => {
         const feedback = get().feedback.filter((f) => f.courseId === courseId);
         const grades = get().grades.filter((g) => g.courseId === courseId);
         const lectures = get().lectures.filter((l) => l.courseId === courseId && l.status === 'completed');
         const attendance = lectures.reduce((sum, l) => sum + l.attendees.length, 0);
-        
+
         const totalDataPoints = feedback.length + grades.length + attendance;
-        
+
         return {
           hasFeedback: feedback.length > 0,
           hasGrades: grades.length > 0,
@@ -865,36 +869,36 @@ export const useLISStore = create<LISState>()(
           isReady: totalDataPoints >= 10, // Minimum 10 data points for AI insights
         };
       },
-      
+
       getStudentCourses: (studentId) => {
         const student = get().students.find((s) => s.id === studentId);
         if (!student) return [];
         return get().courses.filter((c) => student.enrolledCourses.includes(c.id));
       },
-      
+
       getStudentPublishedGrades: (studentId) => {
         const student = get().students.find((s) => s.id === studentId);
         if (!student) return [];
-        
+
         const publishedAssessments = get().assessments.filter((a) => a.status === 'published');
         const studentGrades = get().grades.filter(
           (g) => g.studentId === studentId && publishedAssessments.some((a) => a.id === g.assessmentId)
         );
-        
+
         return studentGrades.map((grade) => {
           const assessment = publishedAssessments.find((a) => a.id === grade.assessmentId)!;
           const course = get().courses.find((c) => c.id === assessment.courseId)!;
           return { course, assessment, grade };
         });
       },
-      
+
       calculateStudentGPA: (studentId) => {
         const grades = get().getStudentPublishedGrades(studentId);
         if (grades.length === 0) return 0;
-        
+
         // Group by course
         const courseGrades: Record<string, { total: number; count: number; credits: number }> = {};
-        
+
         grades.forEach(({ course, assessment, grade }) => {
           if (!courseGrades[course.id]) {
             courseGrades[course.id] = { total: 0, count: 0, credits: course.credits };
@@ -905,10 +909,10 @@ export const useLISStore = create<LISState>()(
             courseGrades[course.id].count++;
           }
         });
-        
+
         let totalPoints = 0;
         let totalCredits = 0;
-        
+
         Object.values(courseGrades).forEach(({ total, count, credits }) => {
           if (count > 0) {
             const avgPercentage = total / count;
@@ -917,31 +921,31 @@ export const useLISStore = create<LISState>()(
             totalCredits += credits;
           }
         });
-        
+
         return totalCredits > 0 ? Math.round((totalPoints / totalCredits) * 100) / 100 : 0;
       },
-      
+
       getStudentLectures: (studentId) => {
         const student = get().students.find((s) => s.id === studentId);
         if (!student) return [];
-        
+
         return get().lectures.filter((l) => student.enrolledCourses.includes(l.courseId));
       },
-      
+
       getStudentPendingFeedback: (studentId) => {
         const studentLectures = get().getStudentLectures(studentId);
         const completedLectures = studentLectures.filter((l) => l.status === 'completed');
         const submittedFeedback = get().feedback.filter((f) => f.studentId === studentId);
-        
+
         return completedLectures.filter(
           (l) => !submittedFeedback.some((f) => f.lectureId === l.id)
         );
       },
-      
+
       getUserSettings: (userId) => {
         const existing = get().settings.find((s) => s.userId === userId);
         if (existing) return existing;
-        
+
         // Create default settings
         const newSettings: UserSettings = { ...defaultSettings, userId };
         set((state) => ({
@@ -949,7 +953,7 @@ export const useLISStore = create<LISState>()(
         }));
         return newSettings;
       },
-      
+
       updateUserSettings: (userId, updates) => {
         set((state) => ({
           settings: state.settings.map((s) =>
@@ -957,13 +961,13 @@ export const useLISStore = create<LISState>()(
           ),
         }));
       },
-      
+
       getUserNotifications: (userId) => {
         return get().notifications
           .filter((n) => n.userId === userId)
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
       },
-      
+
       markNotificationRead: (notificationId) => {
         set((state) => ({
           notifications: state.notifications.map((n) =>
@@ -971,13 +975,13 @@ export const useLISStore = create<LISState>()(
           ),
         }));
       },
-      
+
       clearAllNotifications: (userId) => {
         set((state) => ({
           notifications: state.notifications.filter((n) => n.userId !== userId),
         }));
       },
-      
+
       resetStore: () => {
         set({
           professors: [],
@@ -991,47 +995,49 @@ export const useLISStore = create<LISState>()(
           settings: [],
         });
       },
-      
+
       seedDemoData: (professorId) => {
         const state = get();
-        
+
         // Only seed if no courses exist for this professor
         if (state.courses.some(c => c.professorId === professorId)) {
-          return;
+          // Return existing student IDs if already seeded
+          return state.students.map(s => s.id);
         }
-        
+
         const now = new Date();
         const oneDay = 24 * 60 * 60 * 1000;
-        
+
         // Create demo courses
         const course1Id = generateId();
         const course2Id = generateId();
         const course3Id = generateId();
-        
-        // Create demo students
+
+        // Create demo students using enhanced mock data
         const studentIds: string[] = [];
         const demoStudents: Student[] = [];
-        const studentNames = [
-          'Alice Johnson', 'Bob Smith', 'Carol Williams', 'David Brown',
-          'Emma Davis', 'Frank Miller', 'Grace Wilson', 'Henry Moore',
-          'Isabella Taylor', 'Jack Anderson', 'Kate Thomas', 'Liam Jackson'
-        ];
-        
-        studentNames.forEach((name, i) => {
+
+        // Use first 12 students from enhanced data for variety
+        const selectedStudents = enhancedStudents.slice(0, 12);
+        console.log('🎓 Seeding students from enhanced data:', selectedStudents.length);
+
+        selectedStudents.forEach((enhancedStudent, i) => {
           const id = generateId();
           studentIds.push(id);
           demoStudents.push({
             id,
-            name,
-            email: `${name.toLowerCase().replace(' ', '.')}@university.edu`,
-            rollNumber: `2024CS${String(i + 1).padStart(3, '0')}`,
-            department: 'Computer Science',
+            name: enhancedStudent.full_name,
+            email: enhancedStudent.email,
+            rollNumber: enhancedStudent.roll_number || `2024CS${String(i + 1).padStart(3, '0')}`,
+            department: enhancedStudent.department || 'Computer Science',
             enrolledCourses: i < 8 ? [course1Id, course2Id] : [course2Id, course3Id],
-            createdAt: new Date(now.getTime() - 30 * oneDay).toISOString(),
+            createdAt: enhancedStudent.created_at || new Date(now.getTime() - 30 * oneDay).toISOString(),
             lastActiveAt: new Date(now.getTime() - Math.random() * 7 * oneDay).toISOString(),
           });
         });
-        
+
+        console.log('✅ Created demo students:', demoStudents.length, demoStudents.map(s => s.name));
+
         // Create demo courses
         const demoCourses: Course[] = [
           {
@@ -1077,7 +1083,7 @@ export const useLISStore = create<LISState>()(
             createdAt: new Date(now.getTime() - 30 * oneDay).toISOString(),
           },
         ];
-        
+
         // Create demo lectures
         const demoLectures: Lecture[] = [];
         const lectureTopics = {
@@ -1100,7 +1106,7 @@ export const useLISStore = create<LISState>()(
             { title: 'Neural Networks', topics: ['Perceptron', 'Activation Functions', 'Backpropagation'] },
           ],
         };
-        
+
         Object.entries(lectureTopics).forEach(([courseId, lectures]) => {
           lectures.forEach((lec, i) => {
             const lectureId = generateId();
@@ -1116,23 +1122,23 @@ export const useLISStore = create<LISState>()(
               attendees: courseStudents.slice(0, Math.floor(courseStudents.length * (0.7 + Math.random() * 0.3))),
               createdAt: new Date(now.getTime() - 60 * oneDay).toISOString(),
             });
-            
+
             // Update course with lecture ID
             const course = demoCourses.find(c => c.id === courseId);
             if (course) course.lectures.push(lectureId);
           });
         });
-        
+
         // Create demo feedback with realistic understanding distribution
         const demoFeedback: Feedback[] = [];
         const understandingLevels: ('fully' | 'partial' | 'confused')[] = ['fully', 'partial', 'confused'];
-        
+
         demoLectures.forEach(lecture => {
           lecture.attendees.forEach(studentId => {
             // Realistic distribution: ~60% fully, ~30% partial, ~10% confused
             const rand = Math.random();
             const level = rand < 0.6 ? 'fully' : rand < 0.9 ? 'partial' : 'confused';
-            
+
             demoFeedback.push({
               id: generateId(),
               lectureId: lecture.id,
@@ -1148,15 +1154,15 @@ export const useLISStore = create<LISState>()(
             });
           });
         });
-        
+
         // Create demo assessments
         const demoAssessments: Assessment[] = [];
         const demoGrades: Grade[] = [];
-        
+
         demoCourses.forEach(course => {
           const quiz1Id = generateId();
           const midtermId = generateId();
-          
+
           demoAssessments.push({
             id: quiz1Id,
             courseId: course.id,
@@ -1167,7 +1173,7 @@ export const useLISStore = create<LISState>()(
             status: 'published',
             createdAt: new Date(now.getTime() - 20 * oneDay).toISOString(),
           });
-          
+
           demoAssessments.push({
             id: midtermId,
             courseId: course.id,
@@ -1178,9 +1184,9 @@ export const useLISStore = create<LISState>()(
             status: 'published',
             createdAt: new Date(now.getTime() - 15 * oneDay).toISOString(),
           });
-          
+
           course.assessments.push(quiz1Id, midtermId);
-          
+
           // Create grades
           course.students.forEach(studentId => {
             demoGrades.push({
@@ -1191,7 +1197,7 @@ export const useLISStore = create<LISState>()(
               marksObtained: Math.floor(12 + Math.random() * 9),
               gradedAt: new Date(now.getTime() - 18 * oneDay).toISOString(),
             });
-            
+
             demoGrades.push({
               id: generateId(),
               assessmentId: midtermId,
@@ -1202,11 +1208,11 @@ export const useLISStore = create<LISState>()(
             });
           });
         });
-        
+
         // Update professor with courses
         set((state) => ({
-          professors: state.professors.map(p => 
-            p.id === professorId 
+          professors: state.professors.map(p =>
+            p.id === professorId
               ? { ...p, coursesOwned: [...p.coursesOwned, course1Id, course2Id, course3Id] }
               : p
           ),
@@ -1217,6 +1223,47 @@ export const useLISStore = create<LISState>()(
           assessments: [...state.assessments, ...demoAssessments],
           grades: [...state.grades, ...demoGrades],
         }));
+
+        console.log('✅ Demo data seeded successfully!');
+        console.log('   - Students:', demoStudents.length);
+        console.log('   - Courses:', demoCourses.length);
+        console.log('   - Lectures:', demoLectures.length);
+        console.log('   - Total students in store:', get().students.length);
+
+        // Return the student IDs so caller can use them
+        return studentIds;
+      },
+
+      seedProfessors: () => {
+        const state = get();
+
+        // Only seed if no professors exist
+        if (state.professors.length > 0) {
+          return state.professors.map(p => p.id);
+        }
+
+        const professorIds: string[] = [];
+        const professors: Professor[] = [];
+
+        // Use all enhanced professors
+        enhancedProfessors.forEach((enhancedProf) => {
+          const id = generateId();
+          professorIds.push(id);
+          professors.push({
+            id,
+            name: enhancedProf.full_name,
+            email: enhancedProf.email,
+            department: enhancedProf.department || 'Computer Science',
+            coursesOwned: [],
+            createdAt: enhancedProf.created_at || new Date().toISOString(),
+          });
+        });
+
+        set((state) => ({
+          professors: [...state.professors, ...professors],
+        }));
+
+        return professorIds;
       },
     }),
     {
